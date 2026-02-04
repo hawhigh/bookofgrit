@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, getDoc, setDoc, updateDoc } from 'firebase/firestore'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { db, auth } from '../firebase'
 import {
   signInWithPopup,
