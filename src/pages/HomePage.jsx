@@ -170,6 +170,10 @@ export default function HomePage() {
     }
   }
 
+  const handleAdminAuth = () => {
+    navigate('/admin')
+  }
+
   const handleDownload = (item) => {
     const doc = new jsPDF();
 
