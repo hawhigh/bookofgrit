@@ -2,8 +2,9 @@
 import { motion } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { collection, query, where, getDocs } from 'firebase/firestore'
-import { db } from '../firebase'
+import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
+import { db, auth } from '../firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 
 export default function SuccessPage() {
     const location = useLocation()
@@ -14,12 +15,33 @@ export default function SuccessPage() {
         const queryParams = new URLSearchParams(location.search);
         const itemId = queryParams.get('item_id');
 
+        const unsubscribe = onAuthStateChanged(auth, (u) => {
+            if (u && itemId) {
+                syncPurchaseToCloud(u.uid, itemId);
+            }
+        });
+
         if (!item && itemId) {
             fetchItemById(itemId);
         } else if (item) {
             handleDownload(item);
         }
+
+        return () => unsubscribe();
     }, [])
+
+    const syncPurchaseToCloud = async (uid, itemId) => {
+        try {
+            const userRef = doc(db, "users", uid);
+            await updateDoc(userRef, {
+                purchased: arrayUnion(itemId)
+            });
+            console.log("CLOUDSYNC_COMPLETE:", itemId);
+        } catch (err) {
+            console.error("CLOUDSYNC_FAILED:", err);
+            // If document doesn't exist, we might need to create it, but HomePage usually handles that
+        }
+    }
 
     const fetchItemById = async (id) => {
         try {

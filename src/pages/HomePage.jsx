@@ -3,31 +3,52 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom'
 import { db, auth } from '../firebase'
+import {
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from 'firebase/auth'
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
 import '../index.css'
 import PaymentModal from '../components/PaymentModal'
 
 export default function HomePage() {
   const [chapters, setChapters] = useState([])
-  const [purchased, setPurchased] = useState(() => {
-    const saved = localStorage.getItem('grit_purchased');
-    return saved ? JSON.parse(saved) : [];
-  })
+  const [purchased, setPurchased] = useState([])
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
-  const [callsign, setCallsign] = useState(localStorage.getItem('grit_callsign') || '')
+  const [callsign, setCallsign] = useState('')
   const navigate = useNavigate()
 
-  useEffect(() => {
-    localStorage.setItem('grit_purchased', JSON.stringify(purchased));
-  }, [purchased])
 
   useEffect(() => {
-    fetchChapters();
-    const unsubscribe = auth.onAuthStateChanged((u) => {
+    // Listen for Auth State Changes
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u);
+      if (u) {
+        // Fetch User Data from Firestore
+        const userRef = doc(db, "users", u.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          setCallsign(userData.callsign || '');
+          if (userData.purchased) {
+            setPurchased(userData.purchased);
+          }
+        }
+      } else {
+        setCallsign('');
+        setPurchased([]);
+      }
     });
+
+    fetchChapters();
     return () => unsubscribe();
   }, [])
 
@@ -86,8 +107,32 @@ export default function HomePage() {
   }
 
 
-  const handleAdminAuth = () => {
-    navigate('/admin')
+  const handleGoogleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      console.error("Google Auth Error:", err);
+    }
+  }
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+  }
+
+  const handleInitCallsign = async (val) => {
+    if (!user || !val) return;
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, {
+        callsign: val.toUpperCase(),
+        email: user.email,
+        purchased: purchased
+      }, { merge: true });
+      setCallsign(val.toUpperCase());
+    } catch (err) {
+      console.error("Failed to init callsign:", err);
+    }
   }
 
   const handleStartReading = () => {
@@ -235,42 +280,71 @@ export default function HomePage() {
           </div>
         </motion.section>
 
-        {!callsign && (
-          <motion.section
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="p-8 bg-black border-b-2 border-white/5"
-          >
-            <h3 className="font-technical text-[10px] text-zinc-500 mb-4 uppercase tracking-widest text-center">INITIALIZE_OPERATOR_IDENTITY</h3>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="ENTER_CALLSIGN"
-                className="flex-1 bg-black border border-zinc-800 p-3 font-technical text-white focus:border-primary outline-none text-xs"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const val = e.target.value.toUpperCase();
-                    setCallsign(val);
-                    localStorage.setItem('grit_callsign', val);
-                  }
-                }}
-              />
+        {/* User Auth Section */}
+        <motion.section
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          className="p-8 bg-black border-b-2 border-white/5"
+        >
+          {!user ? (
+            <div className="space-y-6">
+              <h3 className="font-technical text-[10px] text-zinc-500 mb-4 uppercase tracking-widest text-center">INITIALIZE_OPERATOR_ENLISTMENT</h3>
               <button
-                onClick={(e) => {
-                  const input = e.currentTarget.previousSibling;
-                  const val = input.value.toUpperCase();
-                  if (val) {
-                    setCallsign(val);
-                    localStorage.setItem('grit_callsign', val);
-                  }
-                }}
-                className="bg-primary text-black font-stencil px-4 text-xs"
+                onClick={handleGoogleLogin}
+                className="w-full bg-white text-black font-stencil py-4 flex items-center justify-center gap-4 hover:bg-primary transition-all cursor-pointer"
               >
-                ENLIST
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" className="w-5 h-5" />
+                ENLIST WITH GOOGLE
+              </button>
+              <div className="text-center">
+                <span className="text-zinc-700 font-technical text-[8px] uppercase tracking-widest">--- OR_USE_SECURE_CHANNEL ---</span>
+              </div>
+              <p className="text-zinc-600 font-technical text-[8px] text-center uppercase">Email Authentication available in Phase 02</p>
+            </div>
+          ) : !callsign ? (
+            <div className="space-y-6">
+              <h3 className="font-technical text-[10px] text-zinc-500 mb-4 uppercase tracking-widest text-center">ENCRYPT_OPERATOR_IDENTITY</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="ENTER_CALLSIGN"
+                  id="callsign-input"
+                  className="flex-1 bg-black border border-zinc-800 p-3 font-technical text-white focus:border-primary outline-none text-xs"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleInitCallsign(e.target.value);
+                    }
+                  }}
+                />
+                <button
+                  onClick={() => {
+                    const val = document.getElementById('callsign-input').value;
+                    handleInitCallsign(val);
+                  }}
+                  className="bg-primary text-black font-stencil px-4 text-xs"
+                >
+                  ENCRYPT
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-between items-center bg-zinc-900/30 p-4 border border-zinc-800">
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                <div>
+                  <p className="text-[8px] font-technical text-zinc-500 uppercase">Authenticated_Operator:</p>
+                  <p className="text-xs font-bombed text-white tracking-widest">{callsign}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="text-[8px] font-technical text-zinc-700 hover:text-fire uppercase underline"
+              >
+                Terminate_Session
               </button>
             </div>
-          </motion.section>
-        )}
+          )}
+        </motion.section>
 
         {/* Archive Section */}
         <section id="archive-section" className="p-6 bg-black">

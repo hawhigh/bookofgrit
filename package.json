@@ -12,6 +12,7 @@
   "dependencies": {
     "@stripe/stripe-js": "^8.7.0",
     "firebase": "^12.8.0",
+    "firebase-auth-react": "^2.0.12",
     "firebase-tools": "^15.5.1",
     "framer-motion": "^12.31.0",
     "html2canvas": "^1.4.1",
