@@ -104,7 +104,12 @@ export default function HomePage() {
   }
 
   const handleJoinMovement = () => {
-    setSelectedItem({ id: 'SUB_MONTHLY', name: 'OPERATIONAL ACCESS (MONTHLY)', price: '$10' })
+    setSelectedItem({
+      id: 'SUB_MONTHLY',
+      name: 'THE MOVEMENT',
+      price: '$10/MO',
+      description: 'Elite access to the global collective. Includes weekly drills, private discord connectivity, and full archive decryption. No excuses allowed.'
+    })
     setModalOpen(true)
   }
 
@@ -133,7 +138,7 @@ export default function HomePage() {
   return (
     <div className="concrete-texture font-display text-white selection:bg-primary selection:text-black min-h-screen">
 
-      <div className="relative flex min-h-screen w-full flex-col max-w-md mx-auto border-x border-white/5 bg-black shadow-2xl">
+      <div className="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-black">
         {/* Header Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -186,13 +191,6 @@ export default function HomePage() {
           viewport={{ once: true }}
           className="p-8 border-b-2 border-white/10 relative bg-black"
         >
-          <div
-            className="absolute inset-0 opacity-10 grayscale brightness-50"
-            style={{
-              backgroundImage: 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuDrl4uGDOk0M867cc3FEsOMeXkKMdItGLFsrVthakyscjrzrJbJdmTJzOI5qC-LJo9PCnMdQe9pYFrZALBIGI4qzyNhxHpNFMTeD3b3IQiB1RWzItJ8aUQjPQWqe1vDBG8GYdIQkqv1TCwlkEc0uDfe8N0BEAuoI1YAG99VLN3iUSC3N4xLWIbaLJHVCkAMbNhPZKlrhPTD1bI2kdIBTOIi6Zkkx69z-Ur6Z13F9aiH761OzUzeyWSV-Xa2KXNSXfGHbBaD1Hfk7cEp)',
-              backgroundSize: 'cover'
-            }}
-          ></div>
           <div className="relative z-10">
             <h3 className="font-stencil text-fire text-sm mb-2 tracking-[0.2em] uppercase">Phase_01</h3>
             <h2 className="text-4xl font-bombed mb-6 leading-none">TRUTH OVER COMFORT</h2>
@@ -287,31 +285,47 @@ export default function HomePage() {
           <div className="h-12"></div>
         </section>
 
-        {/* Join Section */}
         <motion.section
           whileInView={{ scale: [0.95, 1], opacity: [0, 1] }}
           viewport={{ once: true }}
-          className="p-6"
+          className="p-6 mb-12"
         >
-          <div className="border-2 border-neon-magenta glow-magenta p-6 relative bg-black/40">
-            <div className="absolute -top-3 left-4 bg-neon-magenta text-black px-3 py-0.5 text-[10px] font-bold font-technical">ENLIST_NOW</div>
-            <h2 className="text-2xl font-bombed mb-4 leading-none text-white">JOIN THE MOVEMENT</h2>
-            <ul className="space-y-3 mb-6 font-technical text-[10px]">
-              <li className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-neon-magenta text-sm">check_circle</span>
-                WEEKLY OPERATIONAL DRILLS
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-neon-magenta text-sm">check_circle</span>
-                PRIVATE DISCORD ACCESS
-              </li>
-            </ul>
+          <div className="border-4 border-neon-magenta p-10 relative bg-black shadow-[0_0_40px_rgba(255,0,255,0.1)]">
+            <div className="absolute -top-4 left-6 bg-neon-magenta text-black px-4 py-1 text-xs font-bold font-technical tracking-widest uppercase">ENLIST_NOW</div>
+
+            <div className="mb-10 text-center">
+              <h2 className="text-4xl md:text-5xl font-bombed mb-4 leading-none text-white italic drop-shadow-[0_0_10px_rgba(255,0,255,0.3)]">REWRITE YOUR REALITY</h2>
+              <div className="h-0.5 w-16 bg-neon-magenta mx-auto mb-6"></div>
+              <p className="font-technical text-zinc-400 text-xs leading-relaxed max-w-sm mx-auto uppercase tracking-tighter">
+                Individuality is a weakness. The collective is an accelerator. Most people fail because they lack the network to hold them accountable.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 mb-12">
+              {[
+                { title: 'TACTICAL_DRILLS', color: 'primary', desc: 'Custom tailored physical and mental protocols delivered weekly to ensure exponential growth.' },
+                { title: 'DIRECT_SIGNAL', color: 'neon-magenta', desc: 'Bypass the noise of public socials. Direct access to the inner circle and decentralized discord backbone.' },
+                { title: 'RESOURCE_DUMP', color: 'fire', desc: 'Immediate unlocking of the full grit archive, including classified strategy decks and behavioral templates.' }
+              ].map((benefit, i) => (
+                <div key={i} className="flex gap-6 items-start border-l-2 border-zinc-900 pl-6 hover:border-neon-magenta transition-colors group">
+                  <div className="pt-1">
+                    <span className="material-symbols-outlined text-neon-magenta opacity-50 group-hover:opacity-100 transition-all font-bold">bolt</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bombed text-[12px] mb-2 tracking-widest underline decoration-zinc-800">{benefit.title}</h4>
+                    <p className="text-zinc-500 font-technical text-[10px] leading-snug">{benefit.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <button
               onClick={handleJoinMovement}
-              className="w-full py-3 border-2 border-neon-magenta text-neon-magenta font-stencil hover:bg-neon-magenta hover:text-black active:scale-[0.98] transition-all cursor-pointer uppercase text-xs"
+              className="w-full py-6 bg-neon-magenta text-black font-stencil text-2xl hover:bg-white active:scale-[0.98] transition-all cursor-pointer shadow-[0_10px_30px_rgba(255,0,255,0.2)]"
             >
-              $10/MONTH ACCESS
+              $10/MONTH // JOIN THE 8,400+
             </button>
+            <p className="text-center mt-6 text-zinc-700 font-technical text-[8px] uppercase tracking-[0.4em]">NO_REFUNDS // NO_EXCUSES // NO_RETREAT</p>
           </div>
         </motion.section>
 

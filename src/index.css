@@ -89,21 +89,12 @@ body {
     }
 }
 
-.glow-cyan {
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-}
-
-.glow-magenta {
-    box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
-}
-
-.glow-orange {
-    box-shadow: 0 0 15px rgba(255, 77, 0, 0.4);
-}
+/* Glow placeholders */
 
 .red-alert {
-    background-color: #ff0000;
-    background-image: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(0, 0, 0, 0.1) 40px, rgba(0, 0, 0, 0.1) 80px);
+    background-color: #000;
+    border-top: 2px solid #ff4d00;
+    border-bottom: 2px solid #ff4d00;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
