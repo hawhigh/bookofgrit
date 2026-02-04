@@ -96,3 +96,8 @@ Thumbs.db
 # Dist
 dist/
 build/
+
+# Deployment Artifacts
+*.zip
+*.exp
+*.sqlite

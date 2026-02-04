@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore'
@@ -86,6 +85,7 @@ export default function HomePage() {
     }
   }
 
+
   const handleAdminAuth = () => {
     navigate('/admin')
   }
@@ -123,16 +123,42 @@ export default function HomePage() {
   }
 
   const handleDownload = (item) => {
-    const text = item.content || `MANIFESSTO - ${item.name}\n\nNO ONE IS COMING TO SAVE YOU.\nDO THE WORK.`;
-    const blob = new Blob([text], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${item.id}_${item.name.replace(/\s/g, '_')}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    const doc = new jsPDF();
+
+    // Set background to black (simulated with dark grey rect as full black drains toner)
+    // Actually for a text document, white background with black text is better for printing,
+    // but we can add a cool cover page.
+
+    // COVER PAGE
+    doc.setFillColor(0, 0, 0);
+    doc.rect(0, 0, 210, 297, 'F'); // Full page black
+
+    doc.setTextColor(255, 77, 0); // Fire orange
+    doc.setFont("courier", "bold");
+    doc.setFontSize(22);
+    doc.text("CLASSIFIED ASSET", 105, 40, null, null, "center");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(30);
+    doc.text(item.name.toUpperCase(), 105, 120, null, null, "center");
+
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`ID: ${item.id}`, 105, 135, null, null, "center");
+    doc.text("AUTHORIZATION: GRIT_MASTER", 105, 140, null, null, "center");
+
+    doc.addPage();
+
+    // CONTENT PAGE
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("times", "normal");
+    doc.setFontSize(12);
+
+    const content = item.content || "NO CONTENT FOUND.\n\nSTAY HARD.";
+    const splitText = doc.splitTextToSize(content, 180);
+    doc.text(splitText, 15, 20);
+
+    doc.save(`${item.id}_${item.name.replace(/\s/g, '_')}_DECRYPTED.pdf`);
   }
 
   return (
@@ -143,22 +169,18 @@ export default function HomePage() {
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative pt-8 pb-16 px-6 overflow-hidden border-b-4 border-black"
+          className="relative pt-6 pb-12 px-6 border-b-4 border-black"
         >
-          <div className="flex justify-between items-center mb-12 opacity-50">
-            <div className="text-[8px] font-technical uppercase">Status: <span className="text-primary">Operational</span></div>
-            <div className="text-[8px] font-technical uppercase">ID: <span className="text-white">{callsign || 'REDACTED'}</span></div>
-          </div>
+          {/* Removed Status/ID text as requested */}
 
           <div className="relative z-10 text-center">
             <div className="mb-2 flex justify-center">
-              <span className="material-symbols-outlined text-6xl text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">skull</span>
+              <img src="/bookofgrit_logo_v3.png" alt="BOOK OF GRIT LOGO" className="w-64 md:w-80 h-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
             </div>
-            <h1 className="text-6xl graffiti-logo glitch-effect leading-none mb-6">BOOK OF<br />GRIT</h1>
 
-            <div className="relative inline-block mb-10">
-              <h2 className="text-4xl font-bombed text-white tracking-tighter leading-none drip bg-white bg-clip-text text-transparent">
-                STOP MAKING<br />EXCUSES
+            <div className="relative inline-block mb-8">
+              <h2 className="text-4xl font-bombed text-white tracking-tighter leading-none drip bg-white bg-clip-text text-transparent uppercase">
+                No comfort.<br />Just grit.
               </h2>
               <div className="absolute -bottom-4 left-0 w-full h-1 bg-fire"></div>
             </div>
@@ -167,7 +189,14 @@ export default function HomePage() {
               onClick={handleStartReading}
               className="w-full bg-primary text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:scale-[0.98] transition-all duration-100 cursor-pointer"
             >
-              START READING
+              ACQUIRE MANUALS
+            </button>
+
+            <button
+              onClick={() => document.getElementById('subs-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="w-full mt-4 bg-neon-magenta text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:scale-[0.98] transition-all duration-100 cursor-pointer"
+            >
+              ENTER TO GRIT
             </button>
           </div>
         </motion.section>
@@ -246,7 +275,7 @@ export default function HomePage() {
         {/* Archive Section */}
         <section id="archive-section" className="p-6 bg-black">
           <div className="flex justify-between items-end mb-8">
-            <h2 className="text-3xl font-graffiti text-white uppercase tracking-tighter">THE ARCHIVE</h2>
+            <h2 className="text-3xl font-graffiti text-white uppercase tracking-tighter">FIELD MANUALS</h2>
             <span className="text-[10px] font-technical text-zinc-500 uppercase">
               {purchased.length} / {chapters.length} UNLOCKED
             </span>
@@ -257,12 +286,12 @@ export default function HomePage() {
           ) : chapters.length === 0 ? (
             <div className="py-20 text-center font-technical text-zinc-700 uppercase">archive_empty // connection_lost</div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-10">
               {chapters.map((item, idx) => (
                 <div
                   key={item.firestoreId || item.id}
                   onClick={() => handleArchiveClick(item)}
-                  className={`relative group cursor-pointer ${idx % 2 !== 0 ? 'translate-y-6' : ''}`}
+                  className={`relative group cursor-pointer ${idx % 2 !== 0 ? 'md:translate-y-6' : ''}`}
                 >
                   <div className={`aspect-[3/4] bg-zinc-900 border-2 relative overflow-hidden transition-transform duration-300 group-hover:scale-[1.02] ${purchased.includes(item.id) ? 'border-neon-yellow shadow-[0_0_15px_rgba(204,255,0,0.3)]' : `${item.borderClass} ${item.glow}`}`}>
                     <img
@@ -286,6 +315,7 @@ export default function HomePage() {
         </section>
 
         <motion.section
+          id="subs-section"
           whileInView={{ scale: [0.95, 1], opacity: [0, 1] }}
           viewport={{ once: true }}
           className="p-6 mb-12"
