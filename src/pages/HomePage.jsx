@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore'
+import { useNavigate } from 'react-router-dom'
 import { db, auth } from '../firebase'
 import '../index.css'
 import PaymentModal from '../components/PaymentModal'
-import AdminDashboard from '../components/AdminDashboard'
 
 export default function HomePage() {
   const [chapters, setChapters] = useState([])
@@ -14,11 +14,11 @@ export default function HomePage() {
     return saved ? JSON.parse(saved) : [];
   })
   const [modalOpen, setModalOpen] = useState(false)
-  const [adminOpen, setAdminOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
   const [callsign, setCallsign] = useState(localStorage.getItem('grit_callsign') || '')
+  const navigate = useNavigate()
 
   useEffect(() => {
     localStorage.setItem('grit_purchased', JSON.stringify(purchased));
@@ -87,7 +87,7 @@ export default function HomePage() {
   }
 
   const handleAdminAuth = () => {
-    setAdminOpen(true);
+    navigate('/admin')
   }
 
   const handleStartReading = () => {
@@ -379,18 +379,6 @@ export default function HomePage() {
         item={selectedItem}
         onComplete={handlePaymentComplete}
       />
-
-      <AnimatePresence>
-        {adminOpen && (
-          <AdminDashboard
-            chapters={chapters}
-            onAdd={handleAddChapter}
-            onDelete={handleDeleteChapter}
-            onSeed={handleSeedChapters}
-            onClose={() => setAdminOpen(false)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   )
 }
