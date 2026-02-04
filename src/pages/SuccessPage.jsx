@@ -33,13 +33,18 @@ export default function SuccessPage() {
     const syncPurchaseToCloud = async (uid, itemId) => {
         try {
             const userRef = doc(db, "users", uid);
-            await updateDoc(userRef, {
+            const updateData = {
                 purchased: arrayUnion(itemId)
-            });
+            };
+
+            if (itemId === 'SUB_MONTHLY') {
+                updateData.isSubscriber = true;
+            }
+
+            await updateDoc(userRef, updateData);
             console.log("CLOUDSYNC_COMPLETE:", itemId);
         } catch (err) {
             console.error("CLOUDSYNC_FAILED:", err);
-            // If document doesn't exist, we might need to create it, but HomePage usually handles that
         }
     }
 

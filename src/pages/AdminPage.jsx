@@ -50,6 +50,7 @@ export default function AdminPage() {
     const [chapters, setChapters] = useState([])
     const [users, setUsers] = useState([])
     const [subs, setSubs] = useState([])
+    const [drills, setDrills] = useState([])
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -63,7 +64,7 @@ export default function AdminPage() {
 
     const fetchAllData = async () => {
         setLoading(true)
-        await Promise.all([fetchChapters(), fetchUsers(), fetchSubs()])
+        await Promise.all([fetchChapters(), fetchUsers(), fetchSubs(), fetchDrills()])
         setLoading(false)
     }
 
@@ -108,6 +109,15 @@ export default function AdminPage() {
         } catch (err) { console.error("Fetch subs failed:", err) }
     }
 
+    const fetchDrills = async () => {
+        try {
+            const q = query(collection(db, "drills"), orderBy("timestamp", "desc"))
+            const querySnapshot = await getDocs(q)
+            const data = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+            setDrills(data)
+        } catch (err) { console.error("Fetch drills failed:", err) }
+    }
+
     const handleAddChapter = async (newCh) => {
         try {
             await addDoc(collection(db, "chapters"), newCh)
@@ -121,6 +131,20 @@ export default function AdminPage() {
             await deleteDoc(doc(db, "chapters", firestoreId))
             fetchChapters()
         } catch (err) { console.error("Delete failed:", err) }
+    }
+    const handleAddDrill = async (drill) => {
+        try {
+            await addDoc(collection(db, "drills"), drill)
+            fetchDrills()
+        } catch (err) { console.error("Add drill failed:", err) }
+    }
+
+    const handleDeleteDrill = async (id) => {
+        try {
+            if (!confirm("TERMINATE_ACTIVE_DRILL?")) return
+            await deleteDoc(doc(db, "drills", id))
+            fetchDrills()
+        } catch (err) { console.error("Delete drill failed:", err) }
     }
 
     const handleSeedChapters = async () => {
@@ -164,8 +188,11 @@ export default function AdminPage() {
                     chapters={chapters}
                     users={users}
                     subs={subs}
+                    drills={drills}
                     onAdd={handleAddChapter}
                     onDelete={handleDeleteChapter}
+                    onAddDrill={handleAddDrill}
+                    onDeleteDrill={handleDeleteDrill}
                     onSeed={handleSeedChapters}
                     onClose={() => navigate('/')}
                 />

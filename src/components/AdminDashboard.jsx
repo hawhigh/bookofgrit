@@ -7,12 +7,13 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 const ADMIN_UID = 'v3RRYjzltBP1o1Vn58uFftR5MM42';
 
 export default function AdminDashboard(props) {
-    const { chapters, onAdd, onUpdate, onDelete, onSeed, onClose } = props;
+    const { chapters, onAdd, onUpdate, onDelete, onSeed, onClose, drills, onAddDrill, onDeleteDrill } = props;
     const [newItem, setNewItem] = useState({
         id: '', name: '', img: '', price: '$3',
         borderClass: 'border-primary', colorClass: 'text-primary', glow: 'glow-cyan',
         description: '', content: '', pdfFile: null
     });
+    const [newDrill, setNewDrill] = useState({ title: '', content: '', type: 'PROTOCOL' });
     const [loginInfo, setLoginInfo] = useState({ email: '', password: '' });
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -103,6 +104,19 @@ export default function AdminDashboard(props) {
         }
     };
 
+    const handleDrillSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            await onAddDrill({ ...newDrill, timestamp: new Date() });
+            setNewDrill({ title: '', content: '', type: 'PROTOCOL' });
+        } catch (err) {
+            console.error("Drill Upload Error", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (!currentUser && !manualAuth) {
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95">
@@ -162,7 +176,7 @@ export default function AdminDashboard(props) {
                     </div>
                     <div className="flex flex-wrap gap-2 md:gap-4 items-center w-full md:w-auto">
                         <div className="flex bg-zinc-900 border border-zinc-700 rounded-sm overflow-hidden flex-1 md:flex-none">
-                            {['BOOKS', 'USERS', 'SUBS'].map(tab => (
+                            {['BOOKS', 'DRILLS', 'USERS', 'SUBS'].map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
@@ -261,6 +275,57 @@ export default function AdminDashboard(props) {
                                                 className="text-zinc-700 hover:text-red-500 material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 delete_forever
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {/* DRILLS TAB */}
+                    {activeTab === 'DRILLS' && (
+                        <div className="grid md:grid-cols-2 gap-12 h-full overflow-hidden">
+                            <div className="overflow-y-auto pr-2 custom-scrollbar">
+                                <h3 className="text-xl font-technical text-neon-magenta mb-6 uppercase tracking-tighter underline">DEPLOY_DRILL</h3>
+                                <form onSubmit={handleDrillSubmit} className="space-y-4">
+                                    <input
+                                        type="text" placeholder="DRILL_TITLE"
+                                        className="w-full bg-black border border-zinc-700 p-3 font-technical text-white focus:border-neon-magenta outline-none"
+                                        value={newDrill.title} onChange={e => setNewDrill({ ...newDrill, title: e.target.value })}
+                                    />
+                                    <select
+                                        className="w-full bg-black border border-zinc-700 p-3 font-technical text-white focus:border-neon-magenta outline-none"
+                                        value={newDrill.type} onChange={e => setNewDrill({ ...newDrill, type: e.target.value })}
+                                    >
+                                        <option value="PROTOCOL">PROTOCOL</option>
+                                        <option value="MANIFESTO">MANIFESTO</option>
+                                        <option value="TACTICAL">TACTICAL</option>
+                                        <option value="CLEARANCE">CLEARANCE</option>
+                                    </select>
+                                    <textarea
+                                        placeholder="DRILL_CONTENT (TECHNICAL_BREIFING)"
+                                        className="w-full bg-black border border-zinc-700 p-3 font-technical text-white focus:border-neon-magenta outline-none h-64"
+                                        value={newDrill.content} onChange={e => setNewDrill({ ...newDrill, content: e.target.value })}
+                                    />
+                                    <button disabled={loading} className="w-full bg-neon-magenta text-black font-stencil py-4 hover:bg-white transition-all disabled:opacity-50">
+                                        {loading ? 'BROADCASTING...' : 'INITIALIZE_BROADCAST'}
+                                    </button>
+                                </form>
+                            </div>
+                            <div className="flex flex-col h-full overflow-hidden">
+                                <h3 className="text-xl font-technical text-zinc-500 mb-6 uppercase tracking-tighter underline">ACTIVE_SIGNALS</h3>
+                                <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                    {drills && drills.map(d => (
+                                        <div key={d.id} className="bg-black p-4 border border-zinc-900 flex justify-between items-center group hover:border-neon-magenta/30 transition-colors">
+                                            <div>
+                                                <p className="text-[8px] font-technical text-zinc-600 mb-1">{d.timestamp?.toDate().toLocaleDateString()}</p>
+                                                <p className="font-bombed text-white uppercase tracking-widest">{d.title}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => onDeleteDrill(d.id)}
+                                                className="text-zinc-700 hover:text-fire material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                delete_sweep
                                             </button>
                                         </div>
                                     ))}

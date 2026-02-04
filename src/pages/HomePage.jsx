@@ -21,6 +21,7 @@ export default function HomePage() {
   const [selectedItem, setSelectedItem] = useState(null)
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
+  const [isSubscriber, setIsSubscriber] = useState(false)
   const [callsign, setCallsign] = useState('')
   const navigate = useNavigate()
 
@@ -40,10 +41,12 @@ export default function HomePage() {
           if (userData.purchased) {
             setPurchased(userData.purchased);
           }
+          setIsSubscriber(userData.isSubscriber || userData.purchased?.includes('SUB_MONTHLY'));
         }
       } else {
         setCallsign('');
         setPurchased([]);
+        setIsSubscriber(false);
       }
     });
 
@@ -126,7 +129,8 @@ export default function HomePage() {
       await setDoc(userRef, {
         callsign: val.toUpperCase(),
         email: user.email,
-        purchased: purchased
+        purchased: purchased,
+        isSubscriber: isSubscriber
       }, { merge: true });
       setCallsign(val.toUpperCase());
     } catch (err) {
@@ -236,12 +240,22 @@ export default function HomePage() {
               ACQUIRE MANUALS
             </button>
 
-            <button
-              onClick={() => document.getElementById('subs-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="w-full mt-4 bg-neon-magenta text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:scale-[0.98] transition-all duration-100 cursor-pointer"
-            >
-              ENTER TO GRIT
-            </button>
+            {isSubscriber ? (
+              <Link to="/dashboard" className="block w-full mt-4">
+                <button
+                  className="w-full bg-neon-magenta text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:scale-[0.98] transition-all duration-100 cursor-pointer"
+                >
+                  ENTER THE DEEP WEB
+                </button>
+              </Link>
+            ) : (
+              <button
+                onClick={() => document.getElementById('subs-section')?.scrollIntoView({ behavior: 'smooth' })}
+                className="w-full mt-4 bg-neon-magenta text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:scale-[0.98] transition-all duration-100 cursor-pointer"
+              >
+                ENTER TO GRIT
+              </button>
+            )}
           </div>
         </motion.section>
 
@@ -422,12 +436,18 @@ export default function HomePage() {
               ))}
             </div>
 
-            <button
-              onClick={handleJoinMovement}
-              className="w-full py-6 bg-neon-magenta text-black font-stencil text-2xl hover:bg-white active:scale-[0.98] transition-all cursor-pointer shadow-[0_10px_30px_rgba(255,0,255,0.2)]"
-            >
-              $10/MONTH // JOIN THE 8,400+
-            </button>
+            {isSubscriber ? (
+              <div className="w-full py-6 bg-green-500/20 border border-green-500/50 text-green-500 font-stencil text-2xl text-center uppercase tracking-widest">
+                OPERATIONAL_CLEARANCE_ACTIVE
+              </div>
+            ) : (
+              <button
+                onClick={handleJoinMovement}
+                className="w-full py-6 bg-neon-magenta text-black font-stencil text-2xl hover:bg-white active:scale-[0.98] transition-all cursor-pointer shadow-[0_10px_30px_rgba(255,0,255,0.2)]"
+              >
+                $10/MONTH // JOIN THE 8,400+
+              </button>
+            )}
             <p className="text-center mt-6 text-zinc-700 font-technical text-[8px] uppercase tracking-[0.4em]">NO_REFUNDS // NO_EXCUSES // NO_RETREAT</p>
           </div>
         </motion.section>
