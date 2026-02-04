@@ -14,21 +14,42 @@ export default function SuccessPage() {
     useEffect(() => {
         const queryParams = new URLSearchParams(location.search);
         const itemId = queryParams.get('item_id');
+        const sessionId = queryParams.get('session_id');
 
-        const unsubscribe = onAuthStateChanged(auth, (u) => {
-            if (u && itemId) {
-                syncPurchaseToCloud(u.uid, itemId);
-            }
-        });
-
-        if (!item && itemId) {
-            fetchItemById(itemId);
-        } else if (item) {
-            handleDownload(item);
+        if (sessionId) {
+            verifyAndSync(sessionId, itemId);
+        } else {
+            setLoading(false);
         }
-
-        return () => unsubscribe();
     }, [])
+
+    const verifyAndSync = async (sessionId, itemId) => {
+        setLoading(true);
+        try {
+            const response = await fetch(`/verify-session.php?session_id=${sessionId}`);
+            const data = await response.json();
+
+            if (data.status === 'paid') {
+                const verifiedItemId = data.itemId || itemId;
+
+                // Perform sync if user is logged in
+                if (auth.currentUser) {
+                    await syncPurchaseToCloud(auth.currentUser.uid, verifiedItemId);
+                }
+
+                // Identify and download
+                if (verifiedItemId) {
+                    fetchItemById(verifiedItemId);
+                }
+            } else {
+                console.error("SECURE_VERIFICATION_FAILED");
+                setLoading(false);
+            }
+        } catch (err) {
+            console.error("VERIFICATION_UNSTABLE:", err);
+            setLoading(false);
+        }
+    }
 
     const syncPurchaseToCloud = async (uid, itemId) => {
         try {

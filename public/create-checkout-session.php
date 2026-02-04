@@ -43,7 +43,9 @@ $postfields = [
     'line_items[0][price_data][product_data][images][0]' => $img,
     'line_items[0][price_data][unit_amount]' => $amountInCents,
     'line_items[0][quantity]' => 1,
-    'metadata[itemId]' => $itemId
+    'metadata[itemId]' => $itemId,
+    'metadata[uid]' => $input['uid'] ?? 'anonymous',
+    'metadata[isSubscription]' => ($mode === 'subscription') ? 'true' : 'false'
 ];
 
 if ($mode === 'subscription') {

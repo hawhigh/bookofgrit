@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { auth } from '../firebase'
 
 export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
     const [status, setStatus] = useState('idle') // idle, processing, success, error
@@ -28,7 +29,8 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                     itemId: item.id,
                     name: item.name,
                     price: item.price,
-                    img: item.img || 'https://thebookofgrit.com/bookofgrit_logo_v3.png'
+                    img: item.img || 'https://thebookofgrit.com/bookofgrit_logo_v3.png',
+                    uid: auth.currentUser?.uid || 'anonymous'
                 }),
             });
 
