@@ -1,19 +1,53 @@
 
 import { motion } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '../firebase'
 
 export default function SuccessPage() {
     const location = useLocation()
-    const item = location.state?.item
+    const [item, setItem] = useState(location.state?.item || null)
+    const [loading, setLoading] = useState(!item)
 
     useEffect(() => {
-        if (item) {
-            handleDownload(item)
+        const queryParams = new URLSearchParams(location.search);
+        const itemId = queryParams.get('item_id');
+
+        if (!item && itemId) {
+            fetchItemById(itemId);
+        } else if (item) {
+            handleDownload(item);
         }
-    }, [item])
+    }, [])
+
+    const fetchItemById = async (id) => {
+        try {
+            console.log("FETCHING item for success:", id);
+            const q = query(collection(db, "chapters"), where("id", "==", id));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                const foundItem = querySnapshot.docs[0].data();
+                setItem(foundItem);
+                handleDownload(foundItem);
+            } else {
+                console.error("No item found for ID:", id);
+            }
+        } catch (err) {
+            console.error("Failed to fetch item for success download:", err);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const handleDownload = (item) => {
+        // If the item has a real PDF URL, we should redirect or open that
+        // Otherwise, fallback to the text manifest.
+        if (item.pdfUrl) {
+            window.open(item.pdfUrl, '_blank');
+            return;
+        }
+
         const text = item.content || `MANIFESSTO - ${item.name}\n\nNO ONE IS COMING TO SAVE YOU.\nDO THE WORK.`
         const blob = new Blob([text], { type: 'text/plain' })
         const url = URL.createObjectURL(blob)
@@ -42,19 +76,27 @@ export default function SuccessPage() {
                     <span className="material-symbols-outlined text-8xl text-primary drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">task_alt</span>
                 </motion.div>
 
-                <h1 className="text-5xl font-bombed mb-4 leading-none glitch-effect">TRANSACTION<br />CONFIRMED</h1>
+                <h1 className="text-5xl font-bombed mb-4 leading-none italic">TRANSACTION<br />CONFIRMED</h1>
 
                 <div className="h-1 w-20 bg-primary mx-auto mb-8"></div>
 
-                {item && (
-                    <div className="mb-8 p-4 border border-zinc-800 bg-black">
+                {loading ? (
+                    <div className="mb-8 p-4 border border-zinc-900 bg-black animate-pulse text-center">
+                        <p className="text-[10px] font-technical text-zinc-600 uppercase">IDENTIFYING_ASSET...</p>
+                    </div>
+                ) : item ? (
+                    <div className="mb-8 p-4 border border-zinc-800 bg-black text-center">
                         <p className="text-[10px] font-technical text-zinc-500 uppercase mb-1">Decrypted_Asset:</p>
                         <p className="text-xl font-bombed text-white uppercase">{item.name}</p>
                         <p className="text-[8px] font-technical text-primary mt-2">DOWNLOAD_STARTED...</p>
                     </div>
+                ) : (
+                    <div className="mb-8 p-4 border border-fire/20 bg-black text-center">
+                        <p className="text-fire text-[10px] font-technical uppercase">ASSET_NOT_FOUND_IN_ARCHIVE</p>
+                    </div>
                 )}
 
-                <p className="font-technical text-zinc-400 text-sm mb-12 leading-relaxed uppercase tracking-tighter">
+                <p className="font-technical text-zinc-400 text-[10px] mb-12 leading-relaxed uppercase tracking-tighter">
                     Operator credentials verified. Digital manifests have been decrypted and linked to your session.
                     <span className="text-white block mt-4 italic font-bold">"THE ONLY EASY DAY WAS YESTERDAY."</span>
                 </p>

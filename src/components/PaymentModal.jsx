@@ -5,23 +5,60 @@ import { useNavigate } from 'react-router-dom'
 
 export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
     const [status, setStatus] = useState('idle') // idle, processing, success, error
+    const [errorMessage, setErrorMessage] = useState('')
     const navigate = useNavigate()
 
     useEffect(() => {
-        if (isOpen) setStatus('idle')
+        if (isOpen) {
+            setStatus('idle')
+            setErrorMessage('')
+        }
     }, [isOpen])
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
         setStatus('processing')
-        // Simulate API call
-        setTimeout(() => {
-            setStatus('success')
-            setTimeout(() => {
-                onComplete(item)
-                onClose()
-                navigate('/success', { state: { item } })
-            }, 1800)
-        }, 2500)
+        setErrorMessage('')
+
+        try {
+            // 1. Call our PHP backend to create a Stripe Checkout Session
+            const response = await fetch('/create-checkout-session.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    itemId: item.id,
+                    name: item.name,
+                    price: item.price,
+                    img: item.img || 'https://thebookofgrit.com/bookofgrit_logo_v3.png'
+                }),
+            });
+
+            // Check if response is JSON
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await response.text();
+                console.error("Non-JSON response:", text);
+                throw new Error("SERVER_CONFIGURATION_ERROR");
+            }
+
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            // 2. Redirect to Stripe Checkout using the Direct URL
+            if (data.url) {
+                // We keep the processing state until the browser starts navigating
+                window.location.href = data.url;
+            } else {
+                throw new Error("SECURE_LINK_GENERATION_FAILED");
+            }
+
+        } catch (err) {
+            console.error("Payment Error:", err);
+            setErrorMessage(err.message || "FAILED_TO_INITIALIZE_GATEWAY");
+            setStatus('error');
+        }
     }
 
     if (!isOpen) return null
@@ -44,7 +81,6 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                 exit={{ scale: 0.95, opacity: 0, y: 30 }}
                 className={`relative w-full ${isSubscription ? 'max-w-4xl' : 'max-w-2xl'} bg-black border-2 ${isSubscription ? 'border-neon-magenta shadow-[0_0_80px_rgba(255,0,255,0.15)]' : 'border-primary shadow-[0_0_80px_rgba(0,240,255,0.15)]'} overflow-hidden h-fit max-h-[90vh] flex flex-col`}
             >
-                {/* Visual Flair */}
                 <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent ${isSubscription ? 'via-neon-magenta' : 'via-primary'} to-transparent opacity-50`}></div>
 
                 <div className="p-8 md:p-12 relative z-10 flex-1 overflow-y-auto custom-scrollbar">
@@ -75,13 +111,12 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-center md:items-end">
-                                            <span className="text-zinc-600 font-technical text-[10px] uppercase mb-1 tracking-widest">ONE_TIME_COST</span>
+                                            <span className="text-zinc-600 font-technical text-[10px] uppercase mb-1 tracking-widest">COST</span>
                                             <span className="text-white text-5xl font-bombed leading-none">{item?.price || '$0.00'}</span>
                                         </div>
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-12">
-                                        {/* Left Side: Information */}
                                         <div className="space-y-8">
                                             <div className="bg-zinc-900/40 border border-zinc-800 p-8 relative">
                                                 <div className={`absolute -top-3 -left-3 w-8 h-8 border-l-2 border-t-2 ${isSubscription ? 'border-neon-magenta/40' : 'border-primary/40'}`}></div>
@@ -115,7 +150,6 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                                             )}
                                         </div>
 
-                                        {/* Right Side: Action/Disclaimer */}
                                         <div className="flex flex-col justify-between space-y-8">
                                             <div className="space-y-6">
                                                 <div className="bg-black/80 border border-zinc-800 p-6 font-technical text-[10px] text-zinc-500 space-y-2 leading-relaxed">
@@ -171,34 +205,35 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                                 </div>
                                 <div>
                                     <p className={`font-bombed ${isSubscription ? 'text-neon-magenta' : 'text-primary'} text-2xl tracking-[0.2em] animate-pulse`}>AUTHORIZING_LINK...</p>
-                                    <p className="font-technical text-xs text-zinc-600 mt-4 uppercase tracking-widest">Handshaking with decentralized backbone node</p>
+                                    <p className="font-technical text-xs text-zinc-600 mt-4 uppercase tracking-widest">Handshaking with secure payment node</p>
                                 </div>
                             </motion.div>
                         )}
 
-                        {status === 'success' && (
+                        {status === 'error' && (
                             <motion.div
-                                key="success"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
+                                key="error"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
                                 className="py-24 text-center space-y-10"
                             >
-                                <div className={`inline-flex items-center justify-center w-32 h-32 rounded-full ${isSubscription ? 'bg-neon-magenta/5 border-neon-magenta' : 'bg-primary/5 border-primary'} border-4 animate-bounce`}>
-                                    <span className={`material-symbols-outlined text-7xl ${isSubscription ? 'text-neon-magenta' : 'text-primary'}`}>terminal</span>
+                                <span className="material-symbols-outlined text-7xl text-fire">warning</span>
+                                <div>
+                                    <p className="font-bombed text-fire text-2xl tracking-[0.2em]">CONNECTION_REJECTED</p>
+                                    <p className="font-technical text-xs text-zinc-600 mt-4 uppercase tracking-widest">{errorMessage}</p>
                                 </div>
-                                <div className="space-y-4">
-                                    <h3 className="text-6xl font-bombed text-white mb-2 underline decoration-primary underline-offset-[16px]">MISSION_START</h3>
-                                    <p className="font-technical text-lg text-zinc-400 uppercase tracking-[0.2em]">OPERATOR ASSETS DEPLOYED TO ROOT</p>
-                                </div>
-                                <div className={`text-xs font-technical ${isSubscription ? 'text-neon-magenta' : 'text-primary'} animate-pulse uppercase tracking-[0.3em] bg-zinc-900/50 py-2 inline-block px-12`}>
-                                    Redirecting to secure download terminal
-                                </div>
+                                <button
+                                    onClick={() => setStatus('idle')}
+                                    className="px-8 py-2 border border-zinc-800 text-zinc-500 font-technical text-[10px] hover:text-white hover:border-white transition-all uppercase"
+                                >
+                                    Retry Connection
+                                </button>
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
 
-                {/* Decorative Footer */}
                 <div className="bg-zinc-950 px-12 py-6 border-t border-zinc-900/50 flex justify-between items-center opacity-40">
                     <span className="text-[10px] font-technical text-zinc-600 tracking-tighter">SESSION_SIG: {Math.random().toString(36).substring(2, 15).toUpperCase()}</span>
                     <div className="flex gap-8">

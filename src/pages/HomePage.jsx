@@ -299,7 +299,7 @@ export default function HomePage() {
                       className={`w-full h-full object-cover transition-all duration-500 ${purchased.includes(item.id) ? 'grayscale-0' : 'grayscale group-hover:grayscale-0'}`}
                       src={item.img}
                     />
-                    <div className="absolute top-2 right-2 sticker-peel px-2 py-1 text-[10px] font-bold z-20">
+                    <div className="absolute top-2 right-2 sticker-peel px-2 py-1.5 text-[10px] font-bold z-20 leading-none">
                       {purchased.includes(item.id) ? 'OWNED' : item.price}
                     </div>
                   </div>
