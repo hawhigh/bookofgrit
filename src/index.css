@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --electric-blue: #00f0ff;
+  --fire-orange: #ff4d00;
+  --magenta: #f0f;
+  --yellow: #ccff00;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.concrete-texture {
+    background-color: #0a0a0a;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDrl4uGDOk0M867cc3FEsOMeXkKMdItGLFsrVthakyscjrzrJbJdmTJzOI5qC-LJo9PCnMdQe9pYFrZALBIGI4qzyNhxHpNFMTeD3b3IQiB1RWzItJ8aUQjPQWqe1vDBG8GYdIQkqv1TCwlkEc0uDfe8N0BEAuoI1YAG99VLN3iUSC3N4xLWIbaLJHVCkAMbNhPZKlrhPTD1bI2kdIBTOIi6Zkkx69z-Ur6Z13F9aiH761OzUzeyWSV-Xa2KXNSXfGHbBaD1Hfk7cEp), radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4), rgba(0, 0, 0, 0.9));
+    background-blend-mode: overlay;
+    background-attachment: fixed;
+}
+
+.graffiti-logo {
+    font-family: "Permanent Marker", cursive;
+    background: linear-gradient(to bottom, #fff 20%, var(--electric-blue) 50%, var(--magenta) 80%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(4px 4px 0px #000);
+    position: relative;
+}
+
+.glitch-effect {
+    text-shadow: 2px 0 #ff00ff, -2px 0 #00f0ff;
+}
+
+.drip {
+    position: relative;
+}
+
+.drip::after {
+    content: "";
+    position: absolute;
+    background: inherit;
+    width: 4px;
+    height: 20px;
+    bottom: -15px;
+    left: 15%;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 25px 8px 0 inherit, 60px 2px 0 inherit, 110px 12px 0 inherit;
+}
+
+.sticker-peel {
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+    background: #fff;
+    color: #000;
+    font-family: 'Rock Salt', cursive;
+    transform: rotate(-5deg);
+}
+
+.noise-overlay {
+    position: fixed;
+    inset: 0;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBAGbrh9UOamWl6QJAqE6wMNIqRIpJvX5Lb3wkmPuR84X5t9MNRve0sEbbVE80ag9mAeiqYh-eEXVaqgQYFYGViMjLijkcfmsP8oA9cQPGJl9cBLDHrVAmDTPiAdkO1ePEuT4W_MUcXQ1ivTCt3f3PkthOdVgX8qBshcQfxP81FWYE_ed5T9OckQEd6WvkTNB-5iCl8ZEu5gen5sPKqAXGpraPDVL62vOmBQcIelcUw9gPmFMDhUmFBKraB8RksaUxmXpG5OvjQjUHV);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.stencil-cutout {
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+
+.ticker-wrap {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.ticker-content {
+    display: inline-block;
+    animation: ticker 20s linear infinite;
+}
+
+@keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.glow-cyan { box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
+.glow-magenta { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
+.glow-orange { box-shadow: 0 0 15px rgba(255, 77, 0, 0.4); }
+
+.red-alert {
+    background-color: #ff0000;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(0,0,0,0.1) 40px, rgba(0,0,0,0.1) 80px);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #000;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #ff4d00;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #fff;
+}

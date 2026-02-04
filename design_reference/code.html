@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Grit Master - BOOK OF GRIT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&amp;family=Rock+Salt&amp;family=Rubik+Mono+One&amp;family=Courier+Prime:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00f0ff",
+                        "fire": "#ff4d00",
+                        "neon-magenta": "#ff00ff",
+                        "neon-yellow": "#ccff00",
+                        "background-dark": "#050505",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "graffiti": ["Permanent Marker", "cursive"],
+                        "stencil": ["Rock Salt", "cursive"],
+                        "bombed": ["Rubik Mono One", "sans-serif"],
+                        "technical": ["Courier Prime", "monospace"]
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --electric-blue: #00f0ff;
+            --fire-orange: #ff4d00;
+            --magenta: #f0f;
+            --yellow: #ccff00;
+        }
+        .concrete-texture {
+            background-color: #0a0a0a;
+            background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDrl4uGDOk0M867cc3FEsOMeXkKMdItGLFsrVthakyscjrzrJbJdmTJzOI5qC-LJo9PCnMdQe9pYFrZALBIGI4qzyNhxHpNFMTeD3b3IQiB1RWzItJ8aUQjPQWqe1vDBG8GYdIQkqv1TCwlkEc0uDfe8N0BEAuoI1YAG99VLN3iUSC3N4xLWIbaLJHVCkAMbNhPZKlrhPTD1bI2kdIBTOIi6Zkkx69z-Ur6Z13F9aiH761OzUzeyWSV-Xa2KXNSXfGHbBaD1Hfk7cEp), radial-gradient(circle at 50% 50%, rgba(20, 20, 20, 0.4), rgba(0, 0, 0, 0.9));
+            background-blend-mode: overlay;
+            background-attachment: fixed;
+        }
+        .graffiti-logo {
+            font-family: "Permanent Marker", cursive;
+            background: linear-gradient(to bottom, #fff 20%, var(--electric-blue) 50%, var(--magenta) 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(4px 4px 0px #000);
+            position: relative;
+        }
+        .glitch-effect {
+            text-shadow: 2px 0 #ff00ff, -2px 0 #00f0ff;
+        }
+        .drip {
+            position: relative;
+        }
+        .drip::after {
+            content: "";
+            position: absolute;
+            background: inherit;
+            width: 4px;
+            height: 20px;
+            bottom: -15px;
+            left: 15%;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 25px 8px 0 inherit, 60px 2px 0 inherit, 110px 12px 0 inherit;
+        }
+        .sticker-peel {
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 85% 100%, 0 100%);
+            background: #fff;
+            color: #000;
+            font-family: 'Rock Salt', cursive;
+            transform: rotate(-5deg);
+        }
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBAGbrh9UOamWl6QJAqE6wMNIqRIpJvX5Lb3wkmPuR84X5t9MNRve0sEbbVE80ag9mAeiqYh-eEXVaqgQYFYGViMjLijkcfmsP8oA9cQPGJl9cBLDHrVAmDTPiAdkO1ePEuT4W_MUcXQ1ivTCt3f3PkthOdVgX8qBshcQfxP81FWYE_ed5T9OckQEd6WvkTNB-5iCl8ZEu5gen5sPKqAXGpraPDVL62vOmBQcIelcUw9gPmFMDhUmFBKraB8RksaUxmXpG5OvjQjUHV);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .stencil-cutout {
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+        }
+        .ticker-wrap {
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .ticker-content {
+            display: inline-block;
+            animation: ticker 20s linear infinite;
+        }
+        @keyframes ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .glow-cyan { box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
+        .glow-magenta { box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
+        .glow-orange { box-shadow: 0 0 15px rgba(255, 77, 0, 0.4); }
+        .red-alert {
+            background-color: #ff0000;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(0,0,0,0.1) 40px, rgba(0,0,0,0.1) 80px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="concrete-texture font-display text-white selection:bg-primary selection:text-black min-h-screen">
+<div class="noise-overlay"></div>
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto border-x border-white/5 bg-black/60">
+<section class="relative pt-12 pb-16 px-6 overflow-hidden border-b-4 border-black">
+<div class="absolute -top-10 -left-10 w-40 h-40 bg-primary/20 blur-[80px]"></div>
+<div class="absolute top-20 -right-10 w-40 h-40 bg-fire/20 blur-[80px]"></div>
+<div class="relative z-10 text-center">
+<div class="mb-2 flex justify-center">
+<span class="material-symbols-outlined text-6xl text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">skull</span>
+</div>
+<h1 class="text-6xl graffiti-logo glitch-effect leading-none mb-6">BOOK OF<br/>GRIT</h1>
+<div class="relative inline-block mb-10">
+<h2 class="text-4xl font-bombed text-white tracking-tighter leading-none drip bg-white -webkit-background-clip-text">
+                        STOP MAKING<br/>EXCUSES
+                    </h2>
+<div class="absolute -bottom-4 left-0 w-full h-1 bg-fire"></div>
+</div>
+<button class="w-full bg-primary text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-100">
+                    START READING
+                </button>
+</div>
+</section>
+<div class="bg-neon-yellow py-2 ticker-wrap border-y-2 border-black">
+<div class="ticker-content flex gap-8 items-center">
+<span class="text-black font-technical font-bold text-xs uppercase tracking-tighter">
+                    8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO // 8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO // 8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO
+                </span>
+<span class="text-black font-technical font-bold text-xs uppercase tracking-tighter">
+                    8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO // 8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO // 8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO
+                </span>
+</div>
+</div>
+<section class="p-8 border-b-2 border-white/10 relative">
+<div class="absolute inset-0 opacity-20 grayscale brightness-50" style="background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDrl4uGDOk0M867cc3FEsOMeXkKMdItGLFsrVthakyscjrzrJbJdmTJzOI5qC-LJo9PCnMdQe9pYFrZALBIGI4qzyNhxHpNFMTeD3b3IQiB1RWzItJ8aUQjPQWqe1vDBG8GYdIQkqv1TCwlkEc0uDfe8N0BEAuoI1YAG99VLN3iUSC3N4xLWIbaLJHVCkAMbNhPZKlrhPTD1bI2kdIBTOIi6Zkkx69z-Ur6Z13F9aiH761OzUzeyWSV-Xa2KXNSXfGHbBaD1Hfk7cEp); background-size: cover;"></div>
+<div class="relative z-10">
+<h3 class="font-stencil text-fire text-sm mb-2 tracking-[0.2em] uppercase">Phase_01</h3>
+<h2 class="text-4xl font-bombed mb-6 leading-none">TRUTH OVER COMFORT</h2>
+<p class="text-zinc-400 font-medium leading-relaxed mb-4">
+                    The world doesn't care about your potential. It only cares about what you've endured. 
+                    <span class="text-white">The Book of Grit is the manual for those who refuse to be forgotten.</span>
+</p>
+<div class="flex gap-2">
+<div class="h-1 w-12 bg-fire"></div>
+<div class="h-1 w-4 bg-zinc-800"></div>
+<div class="h-1 w-4 bg-zinc-800"></div>
+</div>
+</div>
+</section>
+<section class="p-6 bg-zinc-950/50">
+<div class="flex justify-between items-end mb-8">
+<h2 class="text-3xl font-graffiti text-white">THE ARCHIVE</h2>
+<span class="text-[10px] font-technical text-zinc-500">SORT: UNLOCKED_DESC</span>
+</div>
+<div class="grid grid-cols-2 gap-x-4 gap-y-10">
+<div class="relative group">
+<div class="aspect-[3/4] bg-zinc-900 border-2 border-primary glow-cyan relative overflow-hidden">
+<img alt="CH1" class="w-full h-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsY68-HDaa2jNGV0f03uraeN1eAqz_z6KJdGELGwpfgV_IyaDsmNm2pUIj2CJopuOyrHLGHBhzaFEW4bSg7IwJ-h7tCXv37K4bHeQQNu4xjbR-Z7sIK3rK5CxFi1R4dufN5xFBtACCgXrI4cTbdlMCQMU9S-bVS557EShmVJerHO1WPZR8ZJdEu9rTI-YyCwg2-jTyA3K3D-k0fp3EWETdZu_8J9UFV0AU1nD4uKrflSJ-QCIsg1NLfo7rxfr-nITIal9-FpkOniZB"/>
+<div class="absolute top-2 right-2 sticker-peel px-2 py-1 text-[10px] font-bold z-20">$3</div>
+</div>
+<div class="mt-2">
+<p class="text-[10px] font-technical text-primary">CH_01</p>
+<p class="text-xs font-graffiti uppercase">The Void</p>
+</div>
+</div>
+<div class="relative translate-y-6">
+<div class="aspect-[3/4] bg-zinc-900 border-2 border-fire glow-orange relative overflow-hidden">
+<img alt="CH2" class="w-full h-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuh9yajP2K2UokzC7ClDOOXipnj6G6thi0OzOv94tkXWtGDVl0dEnviC-6576FdKLS31wC_yPy4-nVxK2fqIAhvbecAFRogwdBnmndq16MPdnNr5_abVr8mAfJNY9JZHqNwSr244rPrC4nMj65BOa6xQIBuDDtGkH2yCqKygfBgMDTJsIjfNAVQHU7Gh9tNg-rDao62BLMbp1JKCQsqxqcwcfGZ23gyH72_j5q9Wdnbknj01wxnD0YLK8oDr32VUBlUqCNDB_1xgY0"/>
+<div class="absolute top-2 right-2 sticker-peel px-2 py-1 text-[10px] font-bold z-20">$3</div>
+</div>
+<div class="mt-2">
+<p class="text-[10px] font-technical text-fire">CH_02</p>
+<p class="text-xs font-graffiti uppercase">Pain Tolerance</p>
+</div>
+</div>
+<div class="relative">
+<div class="aspect-[3/4] bg-zinc-900 border-2 border-neon-magenta glow-magenta relative overflow-hidden">
+<img alt="CH3" class="w-full h-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC56kH_70TDlN9SyKgcd-f4074AztZff3B4A2Y04L_KrjaZF8QLytUNtIUD8Kg6a3WO04zeBGmLNAnw2T5tHnlrl2eTF3TzAmiimbqOAWPqYgFWtqkYuilGoC9YSeiixfAMX-L03LY1CIdwk7g_5GLKIyTi6dnsTqO1Uq9KqDKtfu8BqEAOcE66Eg4-tOz1rcDqsF197HDbUfR3v8h3TT-btXDZh8a98tx7-OzEzEReZGr40rMhqOWrQFUQE9u44NT25wi4j_CzHEYw"/>
+<div class="absolute top-2 right-2 sticker-peel px-2 py-1 text-[10px] font-bold z-20">$3</div>
+</div>
+<div class="mt-2">
+<p class="text-[10px] font-technical text-neon-magenta">CH_03</p>
+<p class="text-xs font-graffiti uppercase">Legacy War</p>
+</div>
+</div>
+<div class="relative translate-y-6">
+<div class="aspect-[3/4] bg-zinc-900 border-2 border-white/50 relative overflow-hidden">
+<img alt="CH4" class="w-full h-full object-cover grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmffZph4QDexI5jYr49CCmsRxz_ynZIQPdmfDkbLEgj4y7Yi5iVymxj3UTjJp9-N6J_qM7lfY0MaExbUGpf2Y_VveR4yXRoXdmk_S6TI1Bt7y3IFPyPhulf42xH4aFv45FuijLtWH3F7vF8hnHHWYIr5jSAC-IBQVyqhpazomWHorUpw14GC2KAibvKiLoZQxghokSfOqcqvR6K4x24N-YDYp-1U-ERYvjhtf9R_7G6hwrvO_pzoefIDFMy-acsOR2puoWlGsQsxup"/>
+<div class="absolute top-2 right-2 sticker-peel px-2 py-1 text-[10px] font-bold z-20">$3</div>
+</div>
+<div class="mt-2">
+<p class="text-[10px] font-technical text-zinc-500">CH_04</p>
+<p class="text-xs font-graffiti uppercase">Final Stand</p>
+</div>
+</div>
+</div>
+<div class="h-12"></div>
+</section>
+<section class="p-6">
+<div class="border-2 border-neon-magenta glow-magenta p-6 relative bg-black/40">
+<div class="absolute -top-3 left-4 bg-neon-magenta text-black px-3 py-0.5 text-[10px] font-bold font-technical">ENLIST_NOW</div>
+<h2 class="text-2xl font-bombed mb-4 leading-none text-white">JOIN THE MOVEMENT</h2>
+<ul class="space-y-3 mb-6">
+<li class="flex items-center gap-3 text-xs font-technical">
+<span class="material-symbols-outlined text-neon-magenta text-sm">check_circle</span>
+                        WEEKLY OPERATIONAL DRILLS
+                    </li>
+<li class="flex items-center gap-3 text-xs font-technical">
+<span class="material-symbols-outlined text-neon-magenta text-sm">check_circle</span>
+                        PRIVATE DISCORD ACCESS
+                    </li>
+<li class="flex items-center gap-3 text-xs font-technical">
+<span class="material-symbols-outlined text-neon-magenta text-sm">check_circle</span>
+                        UNRELEASED MANIFESTO LEAKS
+                    </li>
+</ul>
+<button class="w-full py-3 border-2 border-neon-magenta text-neon-magenta font-stencil hover:bg-neon-magenta hover:text-black transition-colors">
+                    $10/MONTH ACCESS
+                </button>
+</div>
+</section>
+<section class="red-alert p-10 flex flex-col items-center justify-center text-center min-h-[400px]">
+<h2 class="text-6xl font-bombed text-white leading-none tracking-tighter mb-4 drop-shadow-[4px_4px_0px_#000]">
+                NO ONE IS COMING TO SAVE YOU
+            </h2>
+<div class="w-20 h-1 bg-white mb-8"></div>
+<p class="text-white font-stencil text-lg">DO THE WORK.</p>
+</section>
+<footer class="p-8 bg-black border-t-4 border-zinc-900">
+<div class="flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<div class="text-[10px] font-technical text-zinc-600">AUTH: CLASSIFIED_04</div>
+<div class="text-[10px] font-technical text-zinc-600">STAMP: 2024_Q3_VERIFIED</div>
+</div>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-zinc-700">lock</span>
+<span class="material-symbols-outlined text-zinc-700">shield</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 text-[10px] font-technical text-zinc-400">
+<a class="hover:text-primary underline" href="#">TERMS_OF_GRIT</a>
+<a class="hover:text-primary underline" href="#">CONTACT_REDACTED</a>
+<a class="hover:text-primary underline" href="#">STRIPE_SECURE</a>
+<a class="hover:text-primary underline" href="#">OPERATIONS_SUPPORT</a>
+</div>
+<div class="pt-6 flex justify-center opacity-20">
+<h1 class="text-2xl graffiti-logo">BOOK OF GRIT</h1>
+</div>
+</div>
+</footer>
+<div class="h-8"></div>
+</div>
+
+</body></html>
