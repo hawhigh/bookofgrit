@@ -1,7 +1,7 @@
 
 import { useState } from 'react'
 
-export default function AdminDashboard({ chapters, onAdd, onUpdate, onDelete, onClose }) {
+export default function AdminDashboard({ chapters, onAdd, onUpdate, onDelete, onSeed, onClose }) {
     const [newItem, setNewItem] = useState({
         id: '', name: '', img: '', price: '$3',
         borderClass: 'border-primary', colorClass: 'text-primary', glow: 'glow-cyan',
@@ -23,7 +23,15 @@ export default function AdminDashboard({ chapters, onAdd, onUpdate, onDelete, on
             <div className="w-full max-w-4xl bg-zinc-900 border-2 border-fire p-8 shadow-2xl">
                 <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
                     <h2 className="text-3xl font-bombed text-white uppercase tracking-widest">COMMAND CENTER</h2>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-fire material-symbols-outlined text-4xl">cancel</button>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={onSeed}
+                            className="text-[10px] font-technical bg-zinc-800 text-zinc-400 px-3 py-1 hover:bg-fire hover:text-white transition-colors"
+                        >
+                            RESEED_ARCHIVE
+                        </button>
+                        <button onClick={onClose} className="text-zinc-500 hover:text-fire material-symbols-outlined text-4xl">cancel</button>
+                    </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-12">
@@ -73,7 +81,7 @@ export default function AdminDashboard({ chapters, onAdd, onUpdate, onDelete, on
                                         <p className="font-graffiti text-white uppercase">{ch.name}</p>
                                     </div>
                                     <button
-                                        onClick={() => onDelete(ch.id)}
+                                        onClick={() => onDelete(ch.firestoreId)}
                                         className="text-zinc-700 hover:text-red-500 material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
                                         delete_forever

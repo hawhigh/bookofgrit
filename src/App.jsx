@@ -1,11 +1,11 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore'
+import { db, auth } from './firebase'
 import './index.css'
 import PaymentModal from './components/PaymentModal'
 import AdminDashboard from './components/AdminDashboard'
-
-const API_BASE = '/api';
 
 function App() {
   const [chapters, setChapters] = useState([])
@@ -21,14 +21,16 @@ function App() {
 
   const fetchChapters = async () => {
     try {
-      console.log(`FETCHING chapters from: ${API_BASE}/chapters`);
-      const response = await fetch(`${API_BASE}/chapters`);
-      if (!response.ok) throw new Error(`HTTP_${response.status}`);
-      const data = await response.json();
+      console.log("FETCHING chapters from FIRESTORE");
+      const q = query(collection(db, "chapters"), orderBy("id", "asc"));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({
+        ...doc.data(),
+        firestoreId: doc.id // We keep the doc ID for deletion
+      }));
       setChapters(data);
     } catch (err) {
       console.error("Failed to fetch chapters:", err);
-      // Optional: alert(`ARCHIVE_DECRYPT_FAILED: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -36,23 +38,47 @@ function App() {
 
   const handleAddChapter = async (newCh) => {
     try {
-      const response = await fetch(`${API_BASE}/chapters`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCh)
-      });
-      if (response.ok) fetchChapters();
+      await addDoc(collection(db, "chapters"), newCh);
+      fetchChapters();
     } catch (err) {
       console.error("Failed to add chapter:", err);
     }
   }
 
-  const handleDeleteChapter = async (id) => {
+  const handleDeleteChapter = async (firestoreId) => {
     try {
-      await fetch(`${API_BASE}/chapters/${id}`, { method: 'DELETE' });
+      if (!confirm("CONFIRM_PERMANENT_DELETION?")) return;
+      await deleteDoc(doc(db, "chapters", firestoreId));
       fetchChapters();
     } catch (err) {
       console.error("Failed to delete chapter:", err);
+    }
+  }
+
+  const handleSeedChapters = async () => {
+    try {
+      if (!confirm("WARNING: THIS WILL DUPLICATE DATA IF NOT EMPTY. PROCEED?")) return;
+      const defaults = [
+        { id: 'CH_01', name: 'The Void', price: '$3', borderClass: 'border-primary', colorClass: 'text-primary', glow: 'glow-cyan', description: 'A deep dive into the mental state required to start. When you have nothing, you have everything to gain.', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAsY68-HDaa2jNGV0f03uraeN1eAqz_z6KJdGELGwpfgV_IyaDsmNm2pUIj2CJopuOyrHLGHBhzaFEW4bSg7IwJ-h7tCXv37K4bHeQQNu4xjbR-Z7sIK3rK5CxFi1R4dufN5xFBtACCgXrI4cTbdlMCQMU9S-bVS557EShmVJerHO1WPZR8ZJdEu9rTI-YyCwg2-jTyA3K3D-k0fp3EWETdZu_8J9UFV0AU1nD4uKrflSJ-QCIsg1NLfo7rxfr-nITIal9-FpkOniZB', content: 'VOID_PROTOCOL: START_WITH_NOTHING.' },
+        { id: 'CH_02', name: 'Pain Tolerance', price: '$3', borderClass: 'border-fire', colorClass: 'text-fire', glow: 'glow-orange', description: 'Pain is the only yardstick of progress. Understanding the difference between discomfort and damage.', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuh9yajP2K2UokzC7ClDOOXipnj6G6thi0OzOv94tkXWtGDVl0dEnviC-6576FdKLS31wC_yPy4-nVxK2fqIAhvbecAFRogwdBnmndq16MPdnNr5_abVr8mAfJNY9JZHqNwSr244rPrC4nMj65BOa6xQIBuDDtGkH2yCqKygfBgMDTJsIjfNAVQHU7Gh9tNg-rDao62BLMbp1JKCQsqxqcwcfGZ23gyH72_j5q9Wdnbknj01wxnD0YLK8oDr32VUBlUqCNDB_1xgY0', content: 'PAIN_PROTOCOL: EMBRACE_THE_BURN.' },
+        { id: 'CH_03', name: 'Legacy War', price: '$3', borderClass: 'border-neon-magenta', colorClass: 'text-neon-magenta', glow: 'glow-magenta', description: 'What will they say when you are gone? Building something that outlasts your biological existence.', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC56kH_70TDlN9SyKgcd-f4074AztZff3B4A2Y04L_KrjaZF8QLytUNtIUD8Kg6a3WO04zeBGmLNAnw2T5tHnlrl2eTF3TzAmiimbqOAWPqYgFWtqkYuilGoC9YSeiixfAMX-L03LY1CIdwk7g_5GLKIyTi6dnsTqO1Uq9KqDKtfu8BqEAOcE66Eg4-tOz1rcDqsF197HDbUfR3v8h3TT-btXDZh8a98tx7-OzEzEReZGr40rMhqOWrQFUQE9u44NT25wi4j_CzHEYw', content: 'LEGACY_PROTOCOL: BUILD_TO_LAST.' },
+        { id: 'CH_04', name: 'Final Stand', price: '$3', borderClass: 'border-zinc-500', colorClass: 'text-zinc-500', glow: 'border-white/50', description: 'The end-game manual. When everything is on the line and exhaustion sets in.', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAmffZph4QDexI5jYr49CCmsRxz_ynZIQPdmfDkbLEgj4y7Yi5iVymxj3UTjJp9-N6J_qM7lfY0MaExbUGpf2Y_VveR4yXRoXdmk_S6TI1Bt7y3IFPyPhulf42xH4aFv45FuijLtWH3F7vF8hnHHWYIr5jSAC-IBQVyqhpazomWHorUpw14GC2KAibvKiLoZQxghokSfOqcqvR6K4x24N-YDYp-1U-ERYvjhtf9R_7G6hwrvO_pzoefIDFMy-acsOR2puoWlGsQsxup', content: 'STAND_PROTOCOL: NO_DEFEAT.' }
+      ];
+      for (const ch of defaults) {
+        await addDoc(collection(db, "chapters"), ch);
+      }
+      fetchChapters();
+    } catch (err) {
+      console.error("Failed to seed chapters:", err);
+    }
+  }
+
+  const handleAdminAuth = () => {
+    const pass = prompt("ENTER_ACCESS_KEY:");
+    if (pass === "GRIT2026") {
+      setAdminOpen(true);
+    } else {
+      alert("ACCESS_DENIED");
     }
   }
 
@@ -190,7 +216,7 @@ function App() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-10">
               {chapters.map((item, idx) => (
                 <div
-                  key={item.id}
+                  key={item.firestoreId || item.id}
                   onClick={() => handleArchiveClick(item)}
                   className={`relative group cursor-pointer ${idx % 2 !== 0 ? 'translate-y-6' : ''}`}
                 >
@@ -262,7 +288,7 @@ function App() {
               <div className="flex flex-col gap-1">
                 <div className="text-[10px] font-technical text-zinc-600">AUTH: CLASSIFIED_04</div>
                 <button
-                  onClick={() => setAdminOpen(true)}
+                  onClick={handleAdminAuth}
                   className="text-[10px] font-technical text-zinc-800 text-left hover:text-fire transition-colors"
                 >
                   SYS_ADMIN_LOGIN
@@ -300,6 +326,7 @@ function App() {
             chapters={chapters}
             onAdd={handleAddChapter}
             onDelete={handleDeleteChapter}
+            onSeed={handleSeedChapters}
             onClose={() => setAdminOpen(false)}
           />
         )}
