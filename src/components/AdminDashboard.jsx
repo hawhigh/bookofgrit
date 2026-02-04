@@ -45,7 +45,7 @@ export default function AdminDashboard({ chapters, onAdd, onUpdate, onDelete, on
     if (!user) {
         return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95">
-                <div className="w-full max-w-md bg-zinc-900 border-2 border-fire p-8 shadow-2xl relative overflow-hidden">
+                <div className="w-full max-w-md bg-black border-2 border-fire p-8 shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1 bg-fire animate-pulse"></div>
                     <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
                         <h2 className="text-2xl font-bombed text-white uppercase tracking-widest">RESTRICTED</h2>
@@ -91,7 +91,7 @@ export default function AdminDashboard({ chapters, onAdd, onUpdate, onDelete, on
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 overflow-y-auto">
-            <div className="w-full max-w-4xl bg-zinc-900 border-2 border-fire p-8 shadow-2xl">
+            <div className="w-full max-w-4xl bg-black border-2 border-fire p-8 shadow-2xl">
                 <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
                     <div className="flex items-center gap-4">
                         <h2 className="text-3xl font-bombed text-white uppercase tracking-widest">COMMAND CENTER</h2>
@@ -155,7 +155,7 @@ export default function AdminDashboard({ chapters, onAdd, onUpdate, onDelete, on
                         <h3 className="text-xl font-technical text-primary mb-6 uppercase tracking-tighter underline">ACTIVE_ARCHIVE</h3>
                         <div className="max-h-[500px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                             {chapters.map(ch => (
-                                <div key={ch.id} className="bg-black/50 p-4 border border-zinc-800 flex justify-between items-center group">
+                                <div key={ch.id} className="bg-black p-4 border border-zinc-900 flex justify-between items-center group">
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <p className="text-xs font-technical text-zinc-500">{ch.id}</p>

@@ -39,7 +39,7 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className="relative w-full max-w-sm bg-zinc-900 border-2 border-primary glow-cyan shadow-[0_0_50px_rgba(0,255,255,0.1)] overflow-hidden"
+                className="relative w-full max-w-sm bg-black border-2 border-primary glow-cyan shadow-[0_0_50px_rgba(0,255,255,0.1)] overflow-hidden"
             >
                 {/* Visual Flair */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
@@ -67,7 +67,7 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                                     <h3 className="text-2xl font-bombed text-white mb-1 uppercase tracking-tighter">SECURE ACCESS</h3>
                                     <p className="text-primary font-technical text-[10px] mb-6 tracking-[0.2em]">{item?.id || 'AUTH_REQUIRED'}</p>
 
-                                    <div className="bg-black/40 border border-zinc-800 p-4 relative">
+                                    <div className="bg-black border border-zinc-800 p-4 relative">
                                         <div className="absolute -top-2 -left-2 w-4 h-4 border-l-2 border-t-2 border-primary/30"></div>
                                         <div className="absolute -bottom-2 -right-2 w-4 h-4 border-r-2 border-b-2 border-primary/30"></div>
 
@@ -148,7 +148,7 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                 </div>
 
                 {/* Decorative Footer */}
-                <div className="bg-black/60 px-8 py-3 border-t border-zinc-800/50 flex justify-between items-center">
+                <div className="bg-black px-8 py-3 border-t border-zinc-800/50 flex justify-between items-center">
                     <span className="text-[7px] font-technical text-zinc-700 tracking-tighter">REF: {Math.random().toString(36).substring(7).toUpperCase()}</span>
                     <span className="text-[7px] font-technical text-zinc-700 tracking-tighter">VRS: 2.0.26</span>
                 </div>

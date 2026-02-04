@@ -28,12 +28,11 @@ export default function SuccessPage() {
 
     return (
         <div className="concrete-texture min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white text-center">
-            <div className="noise-overlay"></div>
 
             <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="relative z-10 max-w-md w-full border-4 border-primary glow-cyan bg-black/80 p-12 shadow-[0_0_100px_rgba(0,255,255,0.1)]"
+                className="relative z-10 max-w-md w-full border-4 border-primary glow-cyan bg-black p-12 shadow-[0_0_100px_rgba(0,255,255,0.1)]"
             >
                 <motion.div
                     initial={{ y: 20 }}
@@ -48,7 +47,7 @@ export default function SuccessPage() {
                 <div className="h-1 w-20 bg-primary mx-auto mb-8"></div>
 
                 {item && (
-                    <div className="mb-8 p-4 border border-zinc-800 bg-black/50">
+                    <div className="mb-8 p-4 border border-zinc-800 bg-black">
                         <p className="text-[10px] font-technical text-zinc-500 uppercase mb-1">Decrypted_Asset:</p>
                         <p className="text-xl font-bombed text-white uppercase">{item.name}</p>
                         <p className="text-[8px] font-technical text-primary mt-2">DOWNLOAD_STARTED...</p>
@@ -71,11 +70,6 @@ export default function SuccessPage() {
                 </div>
             </motion.div>
 
-            {/* Background Flair */}
-            <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden opacity-20">
-                <div className="absolute top-1/4 -left-20 w-80 h-80 bg-primary blur-[120px]"></div>
-                <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-fire blur-[120px]"></div>
-            </div>
         </div>
     )
 }

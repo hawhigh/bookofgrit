@@ -5,12 +5,11 @@ import { Link } from 'react-router-dom'
 export default function CancelPage() {
     return (
         <div className="concrete-texture min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white text-center">
-            <div className="noise-overlay"></div>
 
             <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="relative z-10 max-w-md w-full border-4 border-fire glow-orange bg-black/80 p-12 shadow-[0_0_100px_rgba(255,80,0,0.1)]"
+                className="relative z-10 max-w-md w-full border-4 border-fire glow-orange bg-black p-12 shadow-[0_0_100px_rgba(255,80,0,0.1)]"
             >
                 <div className="mb-8">
                     <span className="material-symbols-outlined text-8xl text-fire animate-pulse">warning</span>

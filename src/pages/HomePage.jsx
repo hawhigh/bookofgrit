@@ -132,9 +132,8 @@ export default function HomePage() {
 
   return (
     <div className="concrete-texture font-display text-white selection:bg-primary selection:text-black min-h-screen">
-      <div className="noise-overlay"></div>
 
-      <div className="relative flex min-h-screen w-full flex-col max-w-md mx-auto border-x border-white/5 bg-black/60 shadow-2xl">
+      <div className="relative flex min-h-screen w-full flex-col max-w-md mx-auto border-x border-white/5 bg-black shadow-2xl">
         {/* Header Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -145,8 +144,6 @@ export default function HomePage() {
             <div className="text-[8px] font-technical uppercase">Status: <span className="text-primary">Operational</span></div>
             <div className="text-[8px] font-technical uppercase">ID: <span className="text-white">{callsign || 'REDACTED'}</span></div>
           </div>
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/20 blur-[80px]"></div>
-          <div className="absolute top-20 -right-10 w-40 h-40 bg-fire/20 blur-[80px]"></div>
 
           <div className="relative z-10 text-center">
             <div className="mb-2 flex justify-center">
@@ -187,10 +184,10 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="p-8 border-b-2 border-white/10 relative"
+          className="p-8 border-b-2 border-white/10 relative bg-black"
         >
           <div
-            className="absolute inset-0 opacity-20 grayscale brightness-50"
+            className="absolute inset-0 opacity-10 grayscale brightness-50"
             style={{
               backgroundImage: 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuDrl4uGDOk0M867cc3FEsOMeXkKMdItGLFsrVthakyscjrzrJbJdmTJzOI5qC-LJo9PCnMdQe9pYFrZALBIGI4qzyNhxHpNFMTeD3b3IQiB1RWzItJ8aUQjPQWqe1vDBG8GYdIQkqv1TCwlkEc0uDfe8N0BEAuoI1YAG99VLN3iUSC3N4xLWIbaLJHVCkAMbNhPZKlrhPTD1bI2kdIBTOIi6Zkkx69z-Ur6Z13F9aiH761OzUzeyWSV-Xa2KXNSXfGHbBaD1Hfk7cEp)',
               backgroundSize: 'cover'
@@ -215,7 +212,7 @@ export default function HomePage() {
           <motion.section
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            className="p-8 bg-zinc-900/30 border-b-2 border-white/5"
+            className="p-8 bg-black border-b-2 border-white/5"
           >
             <h3 className="font-technical text-[10px] text-zinc-500 mb-4 uppercase tracking-widest text-center">INITIALIZE_OPERATOR_IDENTITY</h3>
             <div className="flex gap-2">
@@ -249,7 +246,7 @@ export default function HomePage() {
         )}
 
         {/* Archive Section */}
-        <section id="archive-section" className="p-6 bg-zinc-950/50">
+        <section id="archive-section" className="p-6 bg-black">
           <div className="flex justify-between items-end mb-8">
             <h2 className="text-3xl font-graffiti text-white uppercase tracking-tighter">THE ARCHIVE</h2>
             <span className="text-[10px] font-technical text-zinc-500 uppercase">
