@@ -24,6 +24,14 @@ export default function HomePage() {
   const [isSubscriber, setIsSubscriber] = useState(false)
   const [callsign, setCallsign] = useState('')
   const [drills, setDrills] = useState([])
+  const [enlistEmail, setEnlistEmail] = useState('')
+  const [enlistCallsign, setEnlistCallsign] = useState('')
+  const [enlisted, setEnlisted] = useState(false)
+  const [appForm, setAppForm] = useState({ q1: '', q2: '', q3: '', q4: '', q5: '' })
+  const [formConfig, setFormConfig] = useState({ questions: ["LOADING...", "LOADING...", "LOADING...", "LOADING...", "LOADING..."] })
+  const [appSubmitted, setAppSubmitted] = useState(false)
+  const [supportForm, setSupportForm] = useState({ email: '', message: '' })
+  const [supportSubmitted, setSupportSubmitted] = useState(false)
   const navigate = useNavigate()
 
 
@@ -51,8 +59,16 @@ export default function HomePage() {
       }
     });
 
+    const fetchConfig = async () => {
+      const docSnap = await getDoc(doc(db, "form_config", "recruitment"));
+      if (docSnap.exists()) {
+        setFormConfig(docSnap.data());
+      }
+    };
+
     fetchChapters();
     fetchDrills();
+    fetchConfig();
     return () => unsubscribe();
   }, [])
 
@@ -239,6 +255,61 @@ export default function HomePage() {
     doc.text(splitText, 15, 20);
     doc.save(`${item.id}_${item.name.replace(/\s/g, '_')}_DECRYPTED.pdf`);
   }
+
+  const handleEnlistment = async (e) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, "enlistments"), {
+        email: enlistEmail,
+        callsign: enlistCallsign,
+        timestamp: new Date(),
+        status: 'PENDING'
+      });
+      setEnlisted(true);
+      setEnlistEmail('');
+      setEnlistCallsign('');
+    } catch (err) {
+      console.error("Enlistment failed", err);
+      alert("CONNECTION_STRENGTH_LOW: ENLISTMENT_FAILED");
+    }
+  };
+
+  const handleApplication = async (e) => {
+    e.preventDefault();
+    if (!user) {
+      alert("UNAUTHORIZED: OPERATOR_MUST_LOG_IN_TO_APPLY");
+      return;
+    }
+    try {
+      await addDoc(collection(db, "applications"), {
+        uid: user.uid,
+        email: user.email,
+        callsign: callsign || 'ANONYMOUS',
+        ...appForm,
+        timestamp: new Date(),
+        status: 'PENDING_REVIEW'
+      });
+      setAppSubmitted(true);
+    } catch (err) {
+      console.error("Application failed", err);
+      alert("CRITICAL_ERROR: UPLOAD_FAILED");
+    }
+  };
+
+  const handleSupportSignal = async (e) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, "support_signals"), {
+        ...supportForm,
+        timestamp: new Date(),
+        status: 'NEW'
+      });
+      setSupportSubmitted(true);
+    } catch (err) {
+      console.error("Support signal failed", err);
+      alert("TRANSMISSION_FAILED: SIGNAL_CORRUPT");
+    }
+  };
 
   return (
     <div className="concrete-texture font-display text-white selection:bg-primary selection:text-black min-h-screen">
@@ -455,6 +526,134 @@ export default function HomePage() {
 
         {/* Archive Section */}
         <section id="archive-section" className="p-6 bg-black">
+          {/* Join Mailing List / Enlistment Section */}
+          <div className="my-20 p-10 bg-zinc-950 border-2 border-zinc-900 relative overflow-hidden group hover:border-primary/30 transition-colors">
+            <div className="max-w-xl mx-auto text-center space-y-8 relative z-10">
+              <div className="inline-block border border-primary/30 px-4 py-1.5 bg-primary/5">
+                <span className="text-[10px] font-technical text-primary uppercase tracking-[0.3em]">SECURE_ENLISTMENT_LINE_OPEN</span>
+              </div>
+
+              {enlisted ? (
+                <div className="space-y-4 animate-reveal">
+                  <span className="material-symbols-outlined text-primary text-5xl">check_circle</span>
+                  <h3 className="text-2xl font-bombed text-white uppercase italic">IDENTITY_LOGGED</h3>
+                  <p className="text-xs font-technical text-zinc-500 uppercase tracking-widest">YOU_ARE_NOW_ON_THE_GRID. WATCH_FOR_SIGNALS.</p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <h2 className="text-4xl font-bombed uppercase italic text-white tracking-widest">JOIN_THE_MOVEMENT</h2>
+                    <p className="text-[10px] font-technical text-zinc-600 uppercase tracking-widest leading-relaxed mt-4">
+                      RESERVE YOUR ACCESS TO THE DEEP WEB. BE THE FIRST TO RECEIVE OMEGA_PROTOCOL ALERTS, PROMOTIONAL CODES, AND REDACTED INTEL.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleEnlistment} className="mt-8 space-y-4">
+                    <div className="flex flex-col md:flex-row gap-2">
+                      <input
+                        type="text"
+                        required
+                        placeholder="ENTER_CALLSIGN"
+                        className="bg-black border border-zinc-800 p-4 font-technical text-white focus:border-primary outline-none text-xs w-full md:w-1/3"
+                        value={enlistCallsign}
+                        onChange={(e) => setEnlistCallsign(e.target.value)}
+                      />
+                      <input
+                        type="email"
+                        required
+                        placeholder="ENTER_SECURE_EMAIL"
+                        className="flex-1 bg-black border border-zinc-800 p-4 font-technical text-white focus:border-primary outline-none text-xs"
+                        value={enlistEmail}
+                        onChange={(e) => setEnlistEmail(e.target.value)}
+                      />
+                      <button
+                        type="submit"
+                        className="bg-primary text-black font-stencil px-8 py-4 text-sm hover:bg-white transition-all transform hover:scale-[1.02]"
+                      >
+                        ENLIST_NOW
+                      </button>
+                    </div>
+                    <p className="text-[8px] font-technical text-zinc-800 uppercase">SIGNAL_ENCRYPTION_ACTIVE // WE_ONLY_SEND_TRUTH.</p>
+                  </form>
+                </>
+              )}
+            </div>
+
+            {/* Background scanline effect for the card */}
+            <div className="absolute inset-0 pointer-events-none opacity-20">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent h-1 w-full animate-scan" style={{ top: '30%' }}></div>
+            </div>
+          </div>
+
+          {/* Detailed Application Form */}
+          <div id="application-section" className="my-20 p-10 bg-black border-2 border-fire relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 font-technical text-[8px] text-fire animate-pulse uppercase">HIGH_CLEARANCE_REQUIRED</div>
+
+            <div className="max-w-2xl mx-auto space-y-10">
+              <div className="text-center">
+                <h2 className="text-4xl font-bombed text-white uppercase italic tracking-widest">CLEARANCE_APPLICATION</h2>
+                <p className="text-[10px] font-technical text-zinc-500 uppercase tracking-widest mt-4">TERMINAL_REF: 404-APPLICATION_PROTOCOL</p>
+              </div>
+
+              {appSubmitted ? (
+                <div className="p-12 border border-fire/30 bg-fire/5 text-center space-y-6 animate-reveal">
+                  <span className="material-symbols-outlined text-fire text-6xl">shield_with_heart</span>
+                  <h3 className="text-2xl font-bombed text-white uppercase italic">INTEL_RECEIVED</h3>
+                  <p className="text-[10px] font-technical text-zinc-400 uppercase tracking-widest leading-relaxed">
+                         // YOUR_APPLICATION_HAS_BEEN_ENCRYPTED_AND_STORED_IN_THE_OMEGA_VAULT.<br />
+                         // CURRENT_QUEUE_POSITION: CALCULATING...<br />
+                         // EXPECT_CONTACT_IF_INTEREST_IS_RECIPROCATED.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleApplication} className="space-y-6">
+                  <div className="space-y-6">
+                    {formConfig.questions.map((qData, idx) => {
+                      const label = typeof qData === 'string' ? qData : (qData?.label || `QUESTION_0${idx + 1}`);
+                      const type = typeof qData === 'string' ? 'LONG' : (qData?.type || 'LONG');
+
+                      return (
+                        <div key={idx} className="space-y-2">
+                          <label className="text-[10px] font-technical text-zinc-500 uppercase">{label}</label>
+                          {type === 'SHORT' ? (
+                            <input
+                              required
+                              type="text"
+                              className="w-full bg-zinc-900 border border-zinc-800 p-4 font-technical text-white focus:border-fire outline-none text-xs"
+                              value={appForm[`q${idx + 1}`]}
+                              onChange={e => setAppForm({ ...appForm, [`q${idx + 1}`]: e.target.value })}
+                            />
+                          ) : (
+                            <textarea
+                              required
+                              rows="3"
+                              className="w-full bg-zinc-900 border border-zinc-800 p-4 font-technical text-white focus:border-fire outline-none text-xs"
+                              value={appForm[`q${idx + 1}`]}
+                              onChange={e => setAppForm({ ...appForm, [`q${idx + 1}`]: e.target.value })}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-fire text-black font-stencil py-6 text-lg hover:bg-white transition-all transform hover:scale-[1.01] shadow-[0_5px_15px_rgba(255,100,0,0.2)]"
+                  >
+                    SUBMIT_FOR_REVIEW
+                  </button>
+
+                  {!user && (
+                    <p className="text-[8px] font-technical text-fire uppercase text-center animate-pulse">
+                      // ERROR: AUTHENTICATION_REQUIRED_TO_APPLY //
+                    </p>
+                  )}
+                </form>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-between items-end mb-8">
             <h2 className="text-3xl font-graffiti text-white uppercase tracking-tighter">FIELD MANUALS</h2>
             <span className="text-[10px] font-technical text-zinc-500 uppercase">
@@ -558,6 +757,47 @@ export default function HomePage() {
           <div className="w-20 h-1 bg-white mb-8"></div>
           <p className="text-white font-stencil text-lg">DO THE WORK.</p>
         </motion.section>
+
+        <section className="py-20 px-8 bg-zinc-950/20 border-t border-zinc-900">
+          {!supportSubmitted ? (
+            <div className="max-w-2xl mx-auto border border-zinc-900 p-8 bg-zinc-950/50">
+              <h4 className="text-xl font-bombed text-white uppercase mb-6 italic tracking-widest underline decoration-fire">TRANSMIT_DIRECT_SIGNAL</h4>
+              <form onSubmit={handleSupportSignal} className="space-y-6">
+                <input
+                  required
+                  type="email"
+                  placeholder="RETURN_COORDINATES (EMAIL)"
+                  className="w-full bg-black border border-zinc-800 p-4 font-technical text-white focus:border-fire outline-none text-xs"
+                  value={supportForm.email}
+                  onChange={e => setSupportForm({ ...supportForm, email: e.target.value })}
+                />
+                <textarea
+                  required
+                  rows="4"
+                  placeholder="ENCODED_MESSAGE_DETAILS..."
+                  className="w-full bg-black border border-zinc-800 p-4 font-technical text-white focus:border-fire outline-none text-xs"
+                  value={supportForm.message}
+                  onChange={e => setSupportForm({ ...supportForm, message: e.target.value })}
+                />
+                <button type="submit" className="w-full py-4 bg-fire text-white font-stencil text-xl hover:bg-white hover:text-black transition-all">
+                  EXECUTE_BURST_TRANSMISSION
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="max-w-2xl mx-auto border border-fire/30 p-12 bg-fire/5 text-center space-y-4">
+              <span className="material-symbols-outlined text-fire text-5xl animate-pulse">sensors</span>
+              <h4 className="text-2xl font-bombed text-white uppercase tracking-tighter">SIGNAL_RECEIVED</h4>
+              <p className="text-[10px] font-technical text-zinc-500 uppercase">WE_WILL_REFLECT_AND_RESPOND_IF_DEEMED_NECESSARY.</p>
+              <button
+                onClick={() => setSupportSubmitted(false)}
+                className="text-[8px] font-technical text-zinc-700 hover:text-white underline uppercase"
+              >
+                SEND_ANOTHER_SIGNAL
+              </button>
+            </div>
+          )}
+        </section>
 
         <footer className="p-8 bg-black border-t-4 border-zinc-900">
           <div className="flex flex-col gap-6">

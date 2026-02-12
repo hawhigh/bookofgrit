@@ -51,6 +51,11 @@ export default function AdminPage() {
     const [users, setUsers] = useState([])
     const [subs, setSubs] = useState([])
     const [drills, setDrills] = useState([])
+    const [enlistments, setEnlistments] = useState([])
+    const [applications, setApplications] = useState([])
+    const [orderIntents, setOrderIntents] = useState([])
+    const [supportSignals, setSupportSignals] = useState([])
+    const [formConfig, setFormConfig] = useState({ questions: ["", "", "", "", ""] })
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -64,7 +69,17 @@ export default function AdminPage() {
 
     const fetchAllData = async () => {
         setLoading(true)
-        await Promise.all([fetchChapters(), fetchUsers(), fetchSubs(), fetchDrills()])
+        await Promise.all([
+            fetchChapters(),
+            fetchUsers(),
+            fetchSubs(),
+            fetchDrills(),
+            fetchEnlistments(),
+            fetchApplications(),
+            fetchOrderIntents(),
+            fetchSupportSignals(),
+            fetchFormConfig()
+        ])
         setLoading(false)
     }
 
@@ -120,6 +135,59 @@ export default function AdminPage() {
         } catch (err) { console.error("Fetch drills failed:", err) }
     }
 
+    const fetchEnlistments = async () => {
+        try {
+            const q = query(collection(db, "enlistments"), orderBy("timestamp", "desc"))
+            const querySnapshot = await getDocs(q)
+            const data = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+            setEnlistments(data)
+        } catch (err) { console.error("Fetch enlistments failed:", err) }
+    }
+
+    const fetchApplications = async () => {
+        try {
+            const q = query(collection(db, "applications"), orderBy("timestamp", "desc"))
+            const querySnapshot = await getDocs(q)
+            const data = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+            setApplications(data)
+        } catch (err) { console.error("Fetch applications failed:", err) }
+    }
+
+    const fetchOrderIntents = async () => {
+        try {
+            const q = query(collection(db, "order_intents"), orderBy("timestamp", "desc"))
+            const querySnapshot = await getDocs(q)
+            const data = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+            setOrderIntents(data)
+        } catch (err) { console.error("Fetch order intents failed:", err) }
+    }
+
+    const fetchSupportSignals = async () => {
+        try {
+            const q = query(collection(db, "support_signals"), orderBy("timestamp", "desc"))
+            const querySnapshot = await getDocs(q)
+            const data = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+            setSupportSignals(data)
+        } catch (err) { console.error("Fetch signals failed:", err) }
+    }
+
+    const fetchFormConfig = async () => {
+        try {
+            const docSnap = await getDoc(doc(db, "form_config", "recruitment"))
+            if (docSnap.exists()) {
+                setFormConfig(docSnap.data())
+            }
+        } catch (err) { console.error("Fetch config failed:", err) }
+    }
+
+    const handleUpdateFormConfig = async (newConfig) => {
+        try {
+            await setDoc(doc(db, "form_config", "recruitment"), newConfig)
+            setFormConfig(newConfig)
+            alert("FORM_PROTOCOL_UPDATED")
+        } catch (err) { console.error("Update config failed:", err) }
+    }
+
     const handleAddChapter = async (newCh) => {
         try {
             await addDoc(collection(db, "chapters"), newCh)
@@ -161,11 +229,8 @@ export default function AdminPage() {
     }
 
     const handleDeleteChapter = async (firestoreId) => {
-        try {
-            if (!confirm("CONFIRM_PERMANENT_DELETION?")) return
-            await deleteDoc(doc(db, "chapters", firestoreId))
-            fetchChapters()
-        } catch (err) { console.error("Delete failed:", err) }
+        await deleteDoc(doc(db, "chapters", firestoreId))
+        fetchChapters()
     }
 
     const handleUpdateChapter = async (firestoreId, updatedData) => {
@@ -182,11 +247,37 @@ export default function AdminPage() {
     }
 
     const handleDeleteDrill = async (id) => {
+        await deleteDoc(doc(db, "drills", id))
+        fetchDrills()
+    }
+    const handleUpdateDrill = async (id, updatedData) => {
         try {
-            if (!confirm("TERMINATE_ACTIVE_DRILL?")) return
-            await deleteDoc(doc(db, "drills", id))
+            await updateDoc(doc(db, "drills", id), updatedData)
             fetchDrills()
-        } catch (err) { console.error("Delete drill failed:", err) }
+        } catch (err) { console.error("Update drill failed:", err) }
+    }
+    const handleDeleteEnlistment = async (id) => {
+        await deleteDoc(doc(db, "enlistments", id))
+        fetchEnlistments()
+    }
+    const handleDeleteApplication = async (id) => {
+        await deleteDoc(doc(db, "applications", id))
+        fetchApplications()
+    }
+
+    const handleDeleteOrderIntent = async (id) => {
+        await deleteDoc(doc(db, "order_intents", id))
+        fetchOrderIntents()
+    }
+    const handleDeleteSupportSignal = async (id) => {
+        await deleteDoc(doc(db, "support_signals", id))
+        fetchSupportSignals()
+    }
+    const handleUpdateSupportSignal = async (id, updatedData) => {
+        try {
+            await updateDoc(doc(db, "support_signals", id), updatedData)
+            fetchSupportSignals()
+        } catch (err) { console.error("Update signal failed:", err) }
     }
 
     const handleSeedChapters = async () => {
@@ -237,8 +328,20 @@ export default function AdminPage() {
                     onGrantAccess={handleGrantAccess}
                     onAddDrill={handleAddDrill}
                     onDeleteDrill={handleDeleteDrill}
+                    onUpdateDrill={handleUpdateDrill}
                     onResetProtocols={handleResetProtocols}
                     onDeleteUser={handleDeleteUser}
+                    enlistments={enlistments}
+                    applications={applications}
+                    orderIntents={orderIntents}
+                    supportSignals={supportSignals}
+                    formConfig={formConfig}
+                    onDeleteEnlistment={handleDeleteEnlistment}
+                    onDeleteApplication={handleDeleteApplication}
+                    onDeleteOrderIntent={handleDeleteOrderIntent}
+                    onDeleteSupportSignal={handleDeleteSupportSignal}
+                    onUpdateSupportSignal={handleUpdateSupportSignal}
+                    onUpdateFormConfig={handleUpdateFormConfig}
                     onSeed={handleSeedChapters}
                     onClose={() => navigate('/')}
                 />

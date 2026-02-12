@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { auth } from '../firebase'
+import { auth, db } from '../firebase'
+import { collection, addDoc } from 'firebase/firestore'
 
 export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
-    const [status, setStatus] = useState('idle') // idle, processing, success, error
+    const [status, setStatus] = useState('idle') // idle, preform, processing, success, error
     const [errorMessage, setErrorMessage] = useState('')
+    const [preForm, setPreForm] = useState({ callsign: '', mission: '' })
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -16,11 +18,31 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
         }
     }, [isOpen])
 
-    const handlePayment = async () => {
+    const handleProceedToPayment = () => {
+        // If it's a subscription, we might want mandatory intel
+        setStatus('preform');
+    }
+
+    const handlePayment = async (e) => {
+        if (e) e.preventDefault();
         setStatus('processing')
         setErrorMessage('')
 
         try {
+            // Save Pre-flight intel to Firestore so Admin can track abandonment & objectives
+            try {
+                await addDoc(collection(db, "order_intents"), {
+                    itemId: item.id,
+                    itemName: item.name,
+                    ...preForm,
+                    uid: auth.currentUser?.uid || 'anonymous',
+                    email: auth.currentUser?.email || 'ANONYMOUS',
+                    timestamp: new Date()
+                });
+            } catch (fsErr) {
+                console.warn("Failed to log order intent to Firestore, continuing with Stripe", fsErr);
+            }
+
             // 1. Call our PHP backend to create a Stripe Checkout Session
             const response = await fetch('/create-checkout-session.php', {
                 method: 'POST',
@@ -30,7 +52,11 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                     name: item.name,
                     price: item.price,
                     img: item.img || 'https://thebookofgrit.com/bookofgrit_logo_v3.png',
-                    uid: auth.currentUser?.uid || 'anonymous'
+                    uid: auth.currentUser?.uid || 'anonymous',
+                    metadata: {
+                        callsign: preForm.callsign,
+                        mission: preForm.mission
+                    }
                 }),
             });
 
@@ -173,7 +199,7 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
 
                                             <div className="space-y-4 pt-8 border-t border-zinc-900">
                                                 <button
-                                                    onClick={handlePayment}
+                                                    onClick={handleProceedToPayment}
                                                     className={`w-full py-6 font-stencil text-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-2xl flex items-center justify-center gap-4 ${isSubscription ? 'bg-neon-magenta text-black shadow-neon-magenta/20' : 'bg-primary text-black shadow-primary/20'} hover:bg-white`}
                                                 >
                                                     <span className="material-symbols-outlined text-3xl">terminal</span>
@@ -189,6 +215,68 @@ export default function PaymentModal({ isOpen, onClose, item, onComplete }) {
                                         </div>
                                     </div>
                                 </div>
+                            </motion.div>
+                        )}
+
+                        {status === 'preform' && (
+                            <motion.div
+                                key="preform"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-10"
+                            >
+                                <div className="border-b border-zinc-900 pb-8">
+                                    <h3 className={`text-3xl font-bombed uppercase italic ${isSubscription ? 'text-neon-magenta' : 'text-primary'}`}>OPERATIONAL_INTEL_REQUIRED</h3>
+                                    <p className="text-[10px] font-technical text-zinc-500 uppercase mt-2 tracking-widest">SUBMIT IDENTITY PARAMS BEFORE SECURE CONNECTION</p>
+                                </div>
+
+                                <form onSubmit={handlePayment} className="space-y-8">
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-technical text-zinc-600 uppercase">CONFIRM_CALLSIGN</label>
+                                            <input
+                                                autoFocus
+                                                required
+                                                type="text"
+                                                placeholder="EX: VANTAGE_POINT"
+                                                className={`w-full bg-zinc-900/50 border border-zinc-800 p-4 font-technical text-white focus:border-${isSubscription ? 'neon-magenta' : 'primary'} outline-none text-xs`}
+                                                value={preForm.callsign}
+                                                onChange={e => setPreForm({ ...preForm, callsign: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-technical text-zinc-600 uppercase">MISSION_OBJECTIVE</label>
+                                            <textarea
+                                                required
+                                                rows="3"
+                                                placeholder="BRIEF_SUMMARY_OF_WHY_YOU_ARE_PURCHASING"
+                                                className={`w-full bg-zinc-900/50 border border-zinc-800 p-4 font-technical text-white focus:border-${isSubscription ? 'neon-magenta' : 'primary'} outline-none text-xs`}
+                                                value={preForm.mission}
+                                                onChange={e => setPreForm({ ...preForm, mission: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setStatus('idle')}
+                                            className="px-8 py-4 border border-zinc-800 text-zinc-600 font-technical text-xs hover:text-white uppercase transition-colors"
+                                        >
+                                            BACK
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className={`flex-1 py-4 font-stencil text-xl transition-all ${isSubscription ? 'bg-neon-magenta text-black' : 'bg-primary text-black'} hover:bg-white`}
+                                        >
+                                            SECURE_ENCRYPT_AND_PAY
+                                        </button>
+                                    </div>
+                                    <p className="text-[8px] font-technical text-zinc-800 uppercase text-center tracking-widest leading-relaxed">
+                                        INTEL_WILL_BE_INJECTED_INTO_STRIPE_METADATA_FOR_ORDER_FULFILLMENT.
+                                    </p>
+                                </form>
                             </motion.div>
                         )}
 

@@ -48,6 +48,12 @@ $postfields = [
     'metadata[isSubscription]' => ($mode === 'subscription') ? 'true' : 'false'
 ];
 
+if (isset($input['metadata']) && is_array($input['metadata'])) {
+    foreach ($input['metadata'] as $key => $value) {
+        $postfields["metadata[$key]"] = $value;
+    }
+}
+
 if ($mode === 'subscription') {
     $postfields['line_items[0][price_data][recurring][interval]'] = 'month';
 }

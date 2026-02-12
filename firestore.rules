@@ -1,23 +1,54 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.uid == 'PiA69d9PK7WzdnKRJIrwgV8hCSr1' ||
+        request.auth.uid == 'P1QlHefoZhgs85nu9VPHKVi5ifm2' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN'
+      );
+    }
+
     match /users/{userId} {
       // Users can only read/write their own data
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      // Admin bypass (PiA69d9PK7WzdnKRJIrwgV8hCSr1)
-      allow read, write: if request.auth != null && request.auth.uid == 'PiA69d9PK7WzdnKRJIrwgV8hCSr1';
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Allow listing users for admins
+      allow list: if isAdmin();
     }
     match /chapters/{docId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == 'PiA69d9PK7WzdnKRJIrwgV8hCSr1';
+      allow write: if isAdmin();
     }
     match /drills/{docId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == 'PiA69d9PK7WzdnKRJIrwgV8hCSr1';
+      allow write: if isAdmin();
     }
     match /subscriptions/{docId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == 'PiA69d9PK7WzdnKRJIrwgV8hCSr1';
+      allow write: if isAdmin();
+    }
+    match /enlistments/{docId} {
+      allow create: if true;
+      allow read, delete, update: if isAdmin();
+    }
+    match /applications/{docId} {
+      allow create: if request.auth != null;
+      allow read, delete, update: if isAdmin();
+    }
+    
+    match /order_intents/{docId} {
+      allow create: if true;
+      allow read, delete: if isAdmin();
+    }
+    
+    match /support_signals/{docId} {
+      allow create: if true;
+      allow read, delete: if isAdmin();
+    }
+    
+    match /form_config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
     // Default deny for everything else
     match /{document=**} {

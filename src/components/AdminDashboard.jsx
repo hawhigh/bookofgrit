@@ -8,10 +8,11 @@ const ADMIN_UID = 'PiA69d9PK7WzdnKRJIrwgV8hCSr1';
 
 export default function AdminDashboard(props) {
     const {
-        chapters, users, subs, drills,
+        chapters, users, subs, drills, enlistments, applications, orderIntents, supportSignals, formConfig,
         onAdd, onUpdate, onDelete, onSeed, onClose,
-        onAddDrill, onDeleteDrill, onGrantAccess,
-        onResetProtocols, onDeleteUser
+        onAddDrill, onDeleteDrill, onUpdateDrill, onGrantAccess,
+        onResetProtocols, onDeleteUser, onDeleteEnlistment, onDeleteApplication, onDeleteOrderIntent, onDeleteSupportSignal,
+        onUpdateSupportSignal, onUpdateFormConfig
     } = props;
     const [editingItem, setEditingItem] = useState(null);
     const [newItem, setNewItem] = useState({
@@ -20,6 +21,7 @@ export default function AdminDashboard(props) {
         description: '', content: '', pdfFile: null, imgFile: null
     });
     const [newDrill, setNewDrill] = useState({ title: '', content: '', type: 'PROTOCOL' });
+    const [editingDrill, setEditingDrill] = useState(null);
     const [loginInfo, setLoginInfo] = useState({ email: '', password: '' });
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -44,14 +46,20 @@ export default function AdminDashboard(props) {
         setError(null);
 
         // Explicit check for admin username to avoid Firebase calls if password is wrong
-        if (loginInfo.email.toLowerCase() === 'commander') {
-            if (loginInfo.password === 'protocol_omega_99') {
+        const admins = {
+            'commander': 'protocol_omega_99',
+            'vanguard': 'grit_vanguard_2026',
+            'sentinel': 'grit_sentinel_2026'
+        };
+
+        if (admins[loginInfo.email.toLowerCase()]) {
+            if (loginInfo.password === admins[loginInfo.email.toLowerCase()]) {
                 console.log("HARDCODED_ADMIN_BYPASS_ACTIVE");
                 setManualAuth(true);
                 setLoading(false);
                 return;
             } else {
-                setError("INVALID_COMMAND_KEY"); // Custom error for wrong admin pass
+                setError("INVALID_COMMAND_KEY");
                 setLoading(false);
                 return;
             }
@@ -154,6 +162,32 @@ export default function AdminDashboard(props) {
 
     const [logs, setLogs] = useState("PEER_NETWORK_LOGS_PENDING...");
 
+    const [isGenerating, setIsGenerating] = useState(false);
+    const generateAiDrill = async () => {
+        setIsGenerating(true);
+        try {
+            const res = await fetch('/api/generate-drill', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ difficulty: 'OPERATOR' })
+            });
+            const data = await res.json();
+            if (data.title) {
+                setNewDrill({
+                    title: data.title,
+                    type: data.type || 'PROTOCOL',
+                    content: data.content
+                });
+                alert("AI_SIGNAL_INTERCEPTED_AND_DECODED");
+            }
+        } catch (err) {
+            console.error("AI Generation Failed", err);
+            alert("SIGNAL_CORRUPT: AI_HANDSHAKE_FAILED");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const fetchLogs = async () => {
         try {
             const res = await fetch(`/ops.php?action=read_logs&t=${Date.now()}`, {
@@ -255,13 +289,23 @@ export default function AdminDashboard(props) {
         e.preventDefault();
         setLoading(true);
         try {
-            await onAddDrill({ ...newDrill, timestamp: new Date() });
+            if (editingDrill) {
+                await onUpdateDrill(editingDrill.id, newDrill);
+                setEditingDrill(null);
+            } else {
+                await onAddDrill({ ...newDrill, timestamp: new Date() });
+            }
             setNewDrill({ title: '', content: '', type: 'PROTOCOL' });
         } catch (err) {
             console.error("Drill Upload Error", err);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDrillEdit = (drill) => {
+        setEditingDrill(drill);
+        setNewDrill({ title: drill.title, content: drill.content, type: drill.type });
     };
 
     if (!currentUser && !manualAuth) {
@@ -326,7 +370,7 @@ export default function AdminDashboard(props) {
                     </div>
                     <div className="flex flex-wrap gap-2 md:gap-4 items-center w-full md:w-auto">
                         <div className="flex bg-zinc-900 border border-zinc-700 rounded-sm overflow-hidden flex-1 md:flex-none">
-                            {['BOOKS', 'DRILLS', 'USERS', 'SUBS', 'LOGS'].map(tab => (
+                            {['BOOKS', 'DRILLS', 'USERS', 'SUBS', 'ENLISTMENTS', 'APPLICATIONS', 'INTENTS', 'SIGNALS', 'CONFIG', 'LOGS'].map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
@@ -496,7 +540,7 @@ export default function AdminDashboard(props) {
                                                                     const formData = new FormData();
                                                                     formData.append('action', 'delete');
                                                                     formData.append('fileUrl', ch.pdfUrl);
-                                                                    await fetch(`https://thebookofgrit.com/ops.php?t=${Date.now()}`, {
+                                                                    await fetch(`/ops.php?t=${Date.now()}`, {
                                                                         method: 'POST',
                                                                         headers: { 'X-Operator-Key': import.meta.env.VITE_OPERATOR_KEY },
                                                                         body: formData
@@ -506,7 +550,7 @@ export default function AdminDashboard(props) {
                                                                     const formData = new FormData();
                                                                     formData.append('action', 'delete');
                                                                     formData.append('fileUrl', ch.img);
-                                                                    await fetch(`https://thebookofgrit.com/ops.php?t=${Date.now()}`, {
+                                                                    await fetch(`/ops.php?t=${Date.now()}`, {
                                                                         method: 'POST',
                                                                         headers: { 'X-Operator-Key': import.meta.env.VITE_OPERATOR_KEY },
                                                                         body: formData
@@ -538,7 +582,20 @@ export default function AdminDashboard(props) {
                     {activeTab === 'DRILLS' && (
                         <div className="grid md:grid-cols-2 gap-12 h-full overflow-hidden">
                             <div className="overflow-y-auto pr-2 custom-scrollbar">
-                                <h3 className="text-xl font-technical text-neon-magenta mb-6 uppercase tracking-tighter underline">DEPLOY_DRILL</h3>
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-xl font-technical text-neon-magenta uppercase tracking-tighter underline">
+                                        {editingDrill ? 'RECONFIGURE_PROTOCOL' : 'DEPLOY_DRILL'}
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={generateAiDrill}
+                                        disabled={isGenerating}
+                                        className="text-[10px] font-technical text-white border border-neon-magenta px-3 py-1 hover:bg-neon-magenta hover:text-black transition-all flex items-center gap-2 animate-pulse"
+                                    >
+                                        <span className="material-symbols-outlined text-xs">psychology</span>
+                                        {isGenerating ? 'DECODING_AI_SIGNAL...' : 'GENERATE_VIA_AI'}
+                                    </button>
+                                </div>
                                 <form onSubmit={handleDrillSubmit} className="space-y-4">
                                     <input
                                         type="text" placeholder="DRILL_TITLE"
@@ -560,7 +617,7 @@ export default function AdminDashboard(props) {
                                         value={newDrill.content} onChange={e => setNewDrill({ ...newDrill, content: e.target.value })}
                                     />
                                     <button disabled={loading} className="w-full bg-neon-magenta text-black font-stencil py-4 hover:bg-white transition-all disabled:opacity-50">
-                                        {loading ? 'BROADCASTING...' : 'INITIALIZE_BROADCAST'}
+                                        {loading ? 'BROADCASTING...' : (editingDrill ? 'UPDATE_SIGNAL' : 'INITIALIZE_BROADCAST')}
                                     </button>
                                 </form>
                             </div>
@@ -573,12 +630,20 @@ export default function AdminDashboard(props) {
                                                 <p className="text-[8px] font-technical text-zinc-600 mb-1">{d.timestamp?.toDate().toLocaleDateString()}</p>
                                                 <p className="font-bombed text-white uppercase tracking-widest">{d.title}</p>
                                             </div>
-                                            <button
-                                                onClick={() => onDeleteDrill(d.id)}
-                                                className="text-zinc-700 hover:text-fire material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                delete_sweep
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleDrillEdit(d)}
+                                                    className="text-zinc-700 hover:text-white material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    edit
+                                                </button>
+                                                <button
+                                                    onClick={() => onDeleteDrill(d.id)}
+                                                    className="text-zinc-700 hover:text-fire material-symbols-outlined opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    delete_sweep
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -589,7 +654,22 @@ export default function AdminDashboard(props) {
                     {/* USERS TAB */}
                     {activeTab === 'USERS' && (
                         <div className="h-full overflow-y-auto custom-scrollbar">
-                            <h3 className="text-xl font-technical text-neon-magenta mb-6 uppercase tracking-tighter underline">OPERATIVE_ROSTER</h3>
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-technical text-neon-magenta uppercase tracking-tighter underline">OPERATIVE_ROSTER</h3>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => {
+                                            const emails = users.map(u => u.email).join(', ');
+                                            navigator.clipboard.writeText(emails);
+                                            alert("ALL_USER_EMAILS_COPIED");
+                                        }}
+                                        className="text-[10px] font-technical text-zinc-500 hover:text-neon-magenta border border-zinc-900 px-2 py-1"
+                                    >
+                                        COPY_ALL_EMAILS
+                                    </button>
+                                    <span className="text-[10px] font-technical text-zinc-500 uppercase">{users?.length || 0}_OPERATIVES_ONLINE</span>
+                                </div>
+                            </div>
                             <div className="w-full overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
@@ -663,7 +743,12 @@ export default function AdminDashboard(props) {
                                                 <p className="text-[8px] font-technical text-zinc-600 uppercase">RENEWAL</p>
                                                 <p className="text-xs text-white">{s.nextBilling}</p>
                                             </div>
-                                            <button className="text-zinc-600 hover:text-white text-[10px] border border-zinc-800 px-3 py-1 hover:border-white transition-colors">MANAGE</button>
+                                            <button
+                                                onClick={() => alert(`OPERATOR_QUERY: ${s.user}\nTARGET_PLAN: ${s.plan}\nCURRENT_STATUS: ${s.status}\n\nManual status overrides must be performed via Stripe Dashboard.`)}
+                                                className="text-zinc-600 hover:text-white text-[10px] border border-zinc-800 px-3 py-1 hover:border-white transition-colors"
+                                            >
+                                                MANAGE
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -671,21 +756,371 @@ export default function AdminDashboard(props) {
                         </div>
                     )}
                     {/* LOGS TAB */}
+                    {activeTab === 'ENLISTMENTS' && (
+                        <div className="space-y-6 h-full overflow-hidden flex flex-col">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-technical text-primary uppercase underline italic">PRE_ENLISTMENT_DATABASE</h3>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => {
+                                            const emails = enlistments.map(e => e.email).join(', ');
+                                            navigator.clipboard.writeText(emails);
+                                            alert("ALL_EMAILS_COPIED_TO_CLIPBOARD");
+                                        }}
+                                        className="text-[10px] font-technical text-zinc-500 hover:text-primary border border-zinc-900 px-2 py-1"
+                                    >
+                                        COPY_ALL_EMAILS
+                                    </button>
+                                    <span className="text-[10px] font-technical text-zinc-500 uppercase">{enlistments?.length || 0}_ENTRIES_FOUND</span>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="grid gap-4">
+                                    {enlistments && enlistments.map((e, idx) => (
+                                        <div key={e.id} className="bg-zinc-950 border border-zinc-900 p-6 flex justify-between items-center group hover:border-primary/30 transition-all">
+                                            <div className="flex items-center gap-6">
+                                                <span className="text-zinc-800 font-technical text-sm">{String(idx + 1).padStart(3, '0')}</span>
+                                                <div>
+                                                    <p className="text-sm font-bombed text-white tracking-widest uppercase">{e.callsign || 'ANONYMOUS_RECRUIT'} // {e.email}</p>
+                                                    <p className="text-[8px] font-technical text-zinc-600 uppercase mt-1">
+                                                        HANDSHAKE: {e.timestamp?.toDate().toLocaleString()} // STATUS: {e.status}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-4 items-center">
+                                                <button
+                                                    onClick={() => {
+                                                        const promo = prompt("ENTER_PROMO_CODE:");
+                                                        if (promo) alert(`SIGNAL_SENT: Promo ${promo} transmitted to ${e.email}`);
+                                                    }}
+                                                    className="text-[10px] font-technical text-zinc-500 hover:text-primary transition-colors flex items-center gap-1"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">send</span>
+                                                    SEND_SIGNAL
+                                                </button>
+                                                <button
+                                                    onClick={() => onDeleteEnlistment(e.id)}
+                                                    className="text-zinc-800 hover:text-fire material-symbols-outlined transition-colors"
+                                                >
+                                                    delete_forever
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(!enlistments || enlistments.length === 0) && (
+                                        <div className="p-20 border border-dashed border-zinc-900 text-center space-y-4">
+                                            <span className="material-symbols-outlined text-zinc-800 text-5xl">person_search</span>
+                                            <p className="text-[10px] font-technical text-zinc-700 uppercase">NO_RECRUITS_IN_QUEUE</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'APPLICATIONS' && (
+                        <div className="space-y-6 h-full overflow-hidden flex flex-col">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-technical text-neon-magenta uppercase underline italic">CLEARANCE_REQUEST_QUEUE</h3>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => {
+                                            const emails = applications.map(a => a.email).join(', ');
+                                            navigator.clipboard.writeText(emails);
+                                            alert("APPLICANT_EMAILS_COPIED");
+                                        }}
+                                        className="text-[10px] font-technical text-zinc-500 hover:text-neon-magenta border border-zinc-900 px-2 py-1"
+                                    >
+                                        COPY_MAILING_LIST
+                                    </button>
+                                    <span className="text-[10px] font-technical text-zinc-500 uppercase">{applications?.length || 0}_PENDING_REVIEWS</span>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="grid gap-6">
+                                    {applications && applications.map((app, idx) => (
+                                        <div key={app.id} className="bg-zinc-950 border border-zinc-900 overflow-hidden group hover:border-neon-magenta/30 transition-all">
+                                            <div className="bg-zinc-900/50 p-4 border-b border-zinc-800 flex justify-between items-center">
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-zinc-700 font-technical text-xs">{String(idx + 1).padStart(3, '0')}</span>
+                                                    <div>
+                                                        <p className="text-xs font-bombed text-white tracking-widest uppercase">{app.callsign} // {app.email}</p>
+                                                        <p className="text-[8px] font-technical text-zinc-600 uppercase">RECEIVED: {app.timestamp?.toDate().toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                                {formConfig?.questions?.map((qData, idx) => {
+                                                    const label = typeof qData === 'string' ? qData : (qData?.label || `QUESTION_0${idx + 1}`);
+                                                    return (
+                                                        <div key={idx}>
+                                                            <p className="text-[7px] font-technical text-zinc-500 uppercase mb-1">Q0{idx + 1}: {label}</p>
+                                                            <p className="text-xs font-technical text-zinc-300 italic bg-black/40 p-3 border-l border-zinc-800">
+                                                                "{app[`q${idx + 1}`] || 'N/A'}"
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            <div className="bg-black/60 p-4 border-t border-zinc-900 flex justify-between items-center">
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => alert(`Reviewing status for operator ${app.callsign}...`)}
+                                                        className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-[8px] font-technical text-zinc-400 hover:text-white transition-colors uppercase"
+                                                    >
+                                                        MARK_AS_REVIEWED
+                                                    </button>
+                                                </div>
+                                                <button
+                                                    onClick={() => onDeleteApplication(app.id)}
+                                                    className="text-zinc-800 hover:text-fire material-symbols-outlined transition-colors"
+                                                >
+                                                    delete_sweep
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(!applications || applications.length === 0) && (
+                                        <div className="p-20 border border-dashed border-zinc-900 text-center space-y-4">
+                                            <span className="material-symbols-outlined text-zinc-800 text-5xl">folder_shared</span>
+                                            <p className="text-[10px] font-technical text-zinc-700 uppercase">QUEUE_EMPTY // NO_ACTIVE_APPLICATIONS</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'INTENTS' && (
+                        <div className="space-y-6 h-full overflow-hidden flex flex-col">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-technical text-neon-yellow uppercase underline italic">PRE_PURCHASE_INTEL</h3>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => {
+                                            const emails = orderIntents.map(i => i.email).join(', ');
+                                            navigator.clipboard.writeText(emails);
+                                            alert("INTENT_EMAILS_COPIED");
+                                        }}
+                                        className="text-[10px] font-technical text-zinc-500 hover:text-neon-yellow border border-zinc-900 px-2 py-1"
+                                    >
+                                        COPY_EMAILS
+                                    </button>
+                                    <span className="text-[10px] font-technical text-zinc-500 uppercase">{orderIntents?.length || 0}_INTENTS_LOGGED</span>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="grid gap-4">
+                                    {orderIntents && orderIntents.map((intent, idx) => (
+                                        <div key={intent.id} className="bg-zinc-950 border border-zinc-900 p-6 flex justify-between items-center group hover:border-neon-yellow/30 transition-all">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-4 mb-2">
+                                                    <span className="text-[8px] font-technical text-zinc-700">{String(idx + 1).padStart(3, '0')}</span>
+                                                    <p className="text-xs font-technical text-white uppercase tracking-widest">{intent.callsign} // {intent.email}</p>
+                                                    <span className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-[8px] font-technical text-zinc-500">{intent.itemName}</span>
+                                                </div>
+                                                <p className="text-[10px] font-technical text-zinc-400 italic">"{intent.mission}"</p>
+                                                <p className="text-[7px] font-technical text-zinc-800 uppercase mt-2">TIMESTAMP: {intent.timestamp?.toDate().toLocaleString()}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => onDeleteOrderIntent(intent.id)}
+                                                className="text-zinc-800 hover:text-fire material-symbols-outlined transition-colors ml-4"
+                                            >
+                                                delete_forever
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {(!orderIntents || orderIntents.length === 0) && (
+                                        <div className="p-20 border border-dashed border-zinc-900 text-center space-y-4">
+                                            <span className="material-symbols-outlined text-zinc-800 text-5xl">inventory_2</span>
+                                            <p className="text-[10px] font-technical text-zinc-700 uppercase">NO_INTENT_SIGNALS_DETECTED</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'SIGNALS' && (
+                        <div className="space-y-6 h-full overflow-hidden flex flex-col">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-technical text-fire uppercase underline italic">SUPPORT_COMMUNICATIONS</h3>
+                                <span className="text-[10px] font-technical text-zinc-500 uppercase">{supportSignals?.length || 0}_PENDING_SIGNALS</span>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="grid gap-4">
+                                    {supportSignals && supportSignals.map((signal, idx) => (
+                                        <div key={signal.id} className={`bg-zinc-950 border ${signal.status === 'PROCESSED' ? 'border-zinc-900 opacity-60' : 'border-fire/40 shadow-[0_0_15px_rgba(255,100,0,0.05)]'} p-6 flex flex-col group hover:border-fire transition-all`}>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <div className="flex items-center gap-3">
+                                                        <p className="text-sm font-technical text-white uppercase tracking-widest">{signal.email}</p>
+                                                        {signal.status === 'PROCESSED' ? (
+                                                            <span className="text-[7px] font-technical bg-zinc-800 text-zinc-500 px-1 border border-zinc-700">ARCHIVED</span>
+                                                        ) : (
+                                                            <span className="text-[7px] font-technical bg-fire/20 text-fire px-1 border border-fire/40 animate-pulse">NEW_COMMUNICATION</span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[7px] font-technical text-zinc-800 uppercase mt-1">TIMESTAMP: {signal.timestamp?.toDate().toLocaleString()}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => onUpdateSupportSignal(signal.id, { status: signal.status === 'PROCESSED' ? 'NEW' : 'PROCESSED' })}
+                                                        className={`material-symbols-outlined text-sm ${signal.status === 'PROCESSED' ? 'text-zinc-700 hover:text-fire' : 'text-fire hover:text-white'}`}
+                                                        title={signal.status === 'PROCESSED' ? 'Restore to Inbox' : 'Mark as Processed'}
+                                                    >
+                                                        {signal.status === 'PROCESSED' ? 'unarchive' : 'check_circle'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => onDeleteSupportSignal(signal.id)}
+                                                        className="text-zinc-800 hover:text-fire material-symbols-outlined transition-colors"
+                                                    >
+                                                        delete_forever
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-black border border-zinc-900 font-technical text-xs text-zinc-400 italic leading-relaxed">
+                                                {signal.message}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {(!supportSignals || supportSignals.length === 0) && (
+                                        <div className="p-20 border border-dashed border-zinc-900 text-center space-y-4">
+                                            <span className="material-symbols-outlined text-zinc-800 text-5xl">mark_email_read</span>
+                                            <p className="text-[10px] font-technical text-zinc-700 uppercase">NO_NEW_SIGNALS_PENDING</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'CONFIG' && (
+                        <div className="space-y-6 h-full overflow-hidden flex flex-col">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-technical text-white uppercase underline italic">RECRUITMENT_PROTOCOL_CONFIG</h3>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const formData = new FormData(e.target);
+                                        const questions = [0, 1, 2, 3, 4].map(idx => ({
+                                            label: formData.get(`q${idx + 1}_label`),
+                                            type: formData.get(`q${idx + 1}_type`)
+                                        }));
+                                        onUpdateFormConfig({ questions });
+                                    }}
+                                    className="space-y-6 bg-zinc-950 border border-zinc-900 p-8"
+                                >
+                                    <p className="text-[10px] font-technical text-zinc-500 uppercase mb-4 italic">DEFINE_THE_5_QUESTIONS_FOR_WANNABE_OPERATORS</p>
+                                    {[0, 1, 2, 3, 4].map(idx => {
+                                        const qData = formConfig?.questions?.[idx];
+                                        const label = typeof qData === 'string' ? qData : (qData?.label || '');
+                                        const type = typeof qData === 'string' ? 'LONG' : (qData?.type || 'LONG');
+
+                                        return (
+                                            <div key={idx} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border border-zinc-900 bg-black/30">
+                                                <div className="md:col-span-3 space-y-2">
+                                                    <label className="text-[10px] font-technical text-zinc-600 uppercase">QUESTION_0{idx + 1}_TEXT</label>
+                                                    <input
+                                                        name={`q${idx + 1}_label`}
+                                                        defaultValue={label}
+                                                        className="w-full bg-black border border-zinc-800 p-3 font-technical text-white focus:border-primary outline-none text-xs"
+                                                        placeholder={`ENTER_QUESTION_ALPHA_${idx + 1}`}
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-technical text-zinc-600 uppercase">FIELD_TYPE</label>
+                                                    <select
+                                                        name={`q${idx + 1}_type`}
+                                                        defaultValue={type}
+                                                        className="w-full bg-black border border-zinc-800 p-3 font-technical text-white focus:border-primary outline-none text-xs"
+                                                    >
+                                                        <option value="SHORT">SHORT_TEXT</option>
+                                                        <option value="LONG">LONG_TEXT</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    <button type="submit" className="w-full py-4 bg-primary text-black font-stencil text-xl hover:bg-white transition-all">
+                                        RE-ENCRYPT_FORM_PROTOCOL
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'LOGS' && (
                         <div className="h-full flex flex-col gap-4">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-technical text-white mb-2 uppercase tracking-tighter underline decoration-zinc-800">FULFILLMENT_AUDIT_TRAIL</h3>
-                                <button onClick={fetchLogs} className="text-[10px] font-technical text-zinc-500 hover:text-white flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-xs">refresh</span>
-                                    RESYNC_LOGS
+                            <div className="flex justify-between items-center mb-2">
+                                <div>
+                                    <h3 className="text-xl font-bombed text-white uppercase tracking-tighter italic">FULFILLMENT_AUDIT_TRAIL</h3>
+                                    <p className="text-[8px] font-technical text-zinc-500 uppercase tracking-widest">LIVE_SERVER_DATA // SECURE_FETCH_ACTIVE</p>
+                                </div>
+                                <button onClick={fetchLogs} className="bg-zinc-900 border border-zinc-800 px-4 py-2 text-[10px] font-technical text-zinc-400 hover:text-white hover:border-white transition-all flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">terminal</span>
+                                    RE-SYNC_TERMINAL
                                 </button>
                             </div>
-                            <div className="flex-1 bg-zinc-950 border border-zinc-900 p-6 font-mono text-[10px] text-zinc-400 overflow-y-auto whitespace-pre-wrap selection:bg-primary selection:text-black">
-                                <div className="border-l-2 border-primary/20 pl-4 py-2 opacity-80 mb-4 italic text-zinc-600">
-                                    // SECURITY_PROTOCOL: Only transactions since last server harvest are shown below.
-                                // RECOVERY_PROCEDURE: CROSS-REFERENCE UID and ITEM_ID for manual fulfillment.
+
+                            <div className="flex-1 bg-black border-2 border-zinc-900 p-0 font-mono text-[10px] overflow-hidden flex flex-col shadow-2xl">
+                                <div className="bg-zinc-900/50 px-4 py-2 border-b border-zinc-800 flex justify-between items-center">
+                                    <div className="flex gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-red-500/20"></div>
+                                        <div className="w-2 h-2 rounded-full bg-yellow-500/20"></div>
+                                        <div className="w-2 h-2 rounded-full bg-green-500/20"></div>
+                                    </div>
+                                    <span className="text-[8px] text-zinc-500 uppercase tracking-widest">AUDIT_PROTOCOL_v4.2.0</span>
                                 </div>
-                                {logs}
+
+                                <div className="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-2">
+                                    {logs === "NO_LOGS_ON_DISK_CURRENTLY" ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-zinc-700 animate-pulse">
+                                            <span className="material-symbols-outlined text-4xl mb-4">folder_open</span>
+                                            <p className="font-technical tracking-widest">ARCHIVE_TEMPORARILY_EMPTY</p>
+                                        </div>
+                                    ) : (
+                                        logs.split('\n').filter(line => line.trim()).map((line, i) => {
+                                            const isSuccess = line.includes('SUCCESS') || line.includes('GRANTED');
+                                            const isError = line.includes('ERROR') || line.includes('FAILED');
+                                            const isInfo = line.includes('RECEIVED') || line.includes('FETCHED');
+
+                                            let color = 'text-zinc-500';
+                                            if (isSuccess) color = 'text-green-500';
+                                            if (isError) color = 'text-red-500';
+                                            if (isInfo) color = 'text-primary';
+
+                                            return (
+                                                <div key={i} className="flex gap-4 group hover:bg-zinc-900/50 p-1 -ml-1 transition-colors">
+                                                    <span className="text-zinc-800 select-none">{String(i + 1).padStart(3, '0')}</span>
+                                                    <span className={`${color} leading-relaxed`}>
+                                                        {line}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+
+                                <div className="bg-zinc-950 px-4 py-2 border-t border-zinc-900 flex justify-between items-center">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]"></div>
+                                            <span className="text-[8px] text-zinc-500 uppercase">System_Online</span>
+                                        </div>
+                                        <span className="text-zinc-800">|</span>
+                                        <span className="text-[8px] text-zinc-600 uppercase">Last_Update: {new Date().toLocaleTimeString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[8px] text-zinc-700 uppercase">Root@GRIT_SERVER_NODE</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}

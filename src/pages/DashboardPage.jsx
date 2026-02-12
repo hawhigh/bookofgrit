@@ -95,21 +95,40 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-black concrete-texture text-white selection:bg-neon-magenta selection:text-black">
+        <div className="min-h-screen bg-black concrete-texture text-white selection:bg-neon-magenta selection:text-black overflow-x-hidden relative">
+            {/* War Room Grid Overlay */}
+            <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]">
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#888_1px,transparent_1px),linear-gradient(to_bottom,#888_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+                <motion.div
+                    animate={{ y: ['0%', '100%'] }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 bg-gradient-to-b from-transparent via-neon-magenta/30 to-transparent h-[20%] w-full"
+                />
+            </div>
+
             {/* Header */}
-            <header className="p-8 border-b-2 border-neon-magenta/20 flex justify-between items-center bg-black/50 backdrop-blur-md sticky top-0 z-50">
+            <header className="p-8 border-b-2 border-neon-magenta/10 flex justify-between items-center bg-black/80 backdrop-blur-xl sticky top-0 z-50">
                 <div className="flex items-center gap-6">
-                    <Link to="/" className="text-2xl font-technical text-neon-magenta hover:text-white transition-colors">
-                        <span className="material-symbols-outlined">arrow_back</span>
+                    <Link to="/" className="w-12 h-12 flex items-center justify-center border border-neon-magenta/20 hover:border-neon-magenta hover:bg-neon-magenta/10 transition-all group">
+                        <span className="material-symbols-outlined text-neon-magenta group-hover:scale-110 transition-transform">arrow_back</span>
                     </Link>
                     <div>
-                        <h1 className="text-xl md:text-3xl font-bombed uppercase tracking-widest text-white italic">THE_DEEP_WEB</h1>
-                        <p className="text-[8px] font-technical text-neon-magenta/60 uppercase tracking-[0.3em]">Operational Area: Classified Archive</p>
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-neon-magenta animate-pulse shadow-[0_0_10px_#ff00ff]"></div>
+                            <h1 className="text-xl md:text-3xl font-bombed uppercase tracking-widest text-white italic">WAR_ROOM_ACCESS</h1>
+                        </div>
+                        <p className="text-[8px] font-technical text-neon-magenta/40 uppercase tracking-[0.4em] mt-1 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[10px]">sensors</span>
+                            SIGNAL_STRENGTH: 98% // ENCRYPTION: OMEGA_IV
+                        </p>
                     </div>
                 </div>
-                <div className="hidden md:flex flex-col items-end">
-                    <span className="text-[10px] font-technical text-zinc-600 uppercase">Operator_Current:</span>
-                    <span className="text-xs font-bombed text-neon-magenta tracking-widest">{userData?.callsign || 'SECURE_NODE'}</span>
+                <div className="hidden md:flex flex-col items-end border-r-2 border-neon-magenta/30 pr-6">
+                    <span className="text-[8px] font-technical text-zinc-600 uppercase tracking-widest">CURRENT_LOGGED_OPERATOR</span>
+                    <span className="text-sm font-bombed text-white tracking-widest flex items-center gap-2 italic">
+                        {userData?.callsign || 'OPERATOR_X'}
+                        <span className="material-symbols-outlined text-neon-magenta text-xs">verified</span>
+                    </span>
                 </div>
             </header>
 
@@ -126,33 +145,68 @@ export default function DashboardPage() {
 
                         <div className="space-y-8">
                             {drills.length === 0 ? (
-                                <div className="p-12 border border-zinc-900 text-center space-y-4 bg-zinc-950/50">
-                                    <span className="material-symbols-outlined text-zinc-800 text-5xl">inventory_2</span>
-                                    <p className="font-technical text-[10px] text-zinc-600 uppercase tracking-widest">ARCHIVE_TEMPORARILY_EMPTY <br /> NEW_DRILLS_DEPLOYING_SOON</p>
+                                <div className="p-20 border border-zinc-900 text-center space-y-6 bg-zinc-950/20 backdrop-blur-sm relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-neon-magenta/5 to-transparent"></div>
+                                    <span className="material-symbols-outlined text-zinc-800 text-6xl group-hover:text-neon-magenta/20 transition-colors">radar</span>
+                                    <div>
+                                        <p className="font-technical text-[10px] text-zinc-600 uppercase tracking-[0.5em] mb-2">SCANNING_FOR_ACTIVE_SIGNALS...</p>
+                                        <div className="w-32 h-[1px] bg-zinc-900 mx-auto relative overflow-hidden">
+                                            <motion.div
+                                                animate={{ x: ['-100%', '100%'] }}
+                                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                                className="absolute inset-0 bg-neon-magenta/50"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 drills.map((drill, i) => (
                                     <motion.div
                                         key={drill.id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.1 }}
-                                        className="group relative p-8 border border-zinc-900 hover:border-neon-magenta/50 bg-black transition-all"
+                                        initial={{ opacity: 0, y: 30 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.1, duration: 0.6 }}
+                                        className="group relative border border-zinc-900 hover:border-neon-magenta/40 bg-zinc-950/40 backdrop-blur-sm transition-all overflow-hidden"
                                     >
-                                        <div className="absolute top-0 right-0 p-4 font-technical text-[8px] text-zinc-700 uppercase">
-                                            {drill.timestamp?.toDate().toLocaleDateString() || 'DATA_PENDING'}
-                                        </div>
-                                        <h3 className="text-2xl font-bombed mb-4 uppercase group-hover:text-neon-magenta transition-colors">{drill.title}</h3>
-                                        <div className="prose prose-invert prose-xs font-technical text-zinc-400 leading-relaxed mb-6">
-                                            {drill.content}
-                                        </div>
-                                        <div className="flex gap-4">
-                                            <span className="px-3 py-1 bg-neon-magenta/10 border border-neon-magenta/20 text-[8px] font-technical text-neon-magenta uppercase tracking-tighter">
-                                                STATUS: ACTIVE
-                                            </span>
-                                            <span className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-[8px] font-technical text-zinc-500 uppercase tracking-tighter">
-                                                TYPE: {drill.type || 'PROTOCOL'}
-                                            </span>
+                                        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-neon-magenta/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+
+                                        <div className="p-8">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="flex gap-4">
+                                                    <span className="w-10 h-10 flex items-center justify-center bg-zinc-900 border border-zinc-800 text-neon-magenta material-symbols-outlined">
+                                                        {drill.type === 'PROTOCOL' ? 'terminal' : drill.type === 'MANIFESTO' ? 'contract' : 'description'}
+                                                    </span>
+                                                    <div>
+                                                        <h3 className="text-2xl font-bombed uppercase group-hover:text-neon-magenta transition-colors italic">{drill.title}</h3>
+                                                        <p className="text-[8px] font-technical text-zinc-600 uppercase tracking-widest underline decoration-zinc-800 underline-offset-4">
+                                                            REF_ID: DRILL_{drill.id.substring(0, 6).toUpperCase()} // TYPE: {drill.type || 'RAW_INTEL'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] font-bombed text-white underline decoration-neon-magenta/50">DECODED</p>
+                                                    <p className="text-[8px] font-technical text-zinc-600 uppercase">{drill.timestamp?.toDate().toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="prose prose-invert prose-xs font-technical text-zinc-400 leading-relaxed mb-8 pl-6 border-l-2 border-zinc-900 group-hover:border-neon-magenta/30 transition-colors whitespace-pre-wrap">
+                                                {drill.content}
+                                            </div>
+
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex gap-2">
+                                                    <span className="px-3 py-1 bg-neon-magenta/10 border border-neon-magenta/20 text-[8px] font-technical text-neon-magenta uppercase">
+                                                        CLEARANCE: OPERATOR
+                                                    </span>
+                                                    <span className="px-3 py-1 bg-zinc-900 border border-zinc-800 text-[8px] font-technical text-zinc-500 uppercase">
+                                                        STATUS: VERIFIED
+                                                    </span>
+                                                </div>
+                                                <button className="text-[10px] font-bombed uppercase text-zinc-700 hover:text-white transition-colors flex items-center gap-2">
+                                                    MARK_AS_COMPLETE <span className="material-symbols-outlined text-xs">radio_button_unchecked</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 ))
@@ -207,16 +261,37 @@ export default function DashboardPage() {
                 </div>
             </main>
 
-            {/* Footer */}
-            <footer className="p-12 border-t-2 border-white/5 bg-black/80">
-                <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 opacity-40">
-                    <span className="font-technical text-[10px] tracking-widest text-zinc-600 uppercase">DEEP_WEB_PROTOCOL_v1.0.4 // BOOK_OF_GRIT_ARCHIVE</span>
-                    <div className="flex gap-12 font-technical text-[8px] tracking-[0.4em]">
-                        <span className="text-zinc-500 uppercase">STATUS: SECURE</span>
-                        <span className="text-zinc-500 uppercase">FREQ: KHZ_44.9</span>
-                    </div>
+            {/* War Room Footer Ticker */}
+            <div className="fixed bottom-0 inset-x-0 h-10 bg-black/90 backdrop-blur-xl border-t-2 border-neon-magenta/20 flex items-center z-[100] overflow-hidden">
+                <div className="bg-neon-magenta px-4 h-full flex items-center gap-2">
+                    <span className="material-symbols-outlined text-black text-sm animate-spin-slow">settings</span>
+                    <span className="text-[10px] font-technical font-bold text-black uppercase tracking-widest whitespace-nowrap">GLOBAL_LIVE_FEED:</span>
                 </div>
-            </footer>
+                <div className="flex-1 px-8 overflow-hidden">
+                    <motion.div
+                        initial={{ x: '0%' }}
+                        animate={{ x: '-50%' }}
+                        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                        className="flex gap-16 whitespace-nowrap"
+                    >
+                        {[...Array(2)].map((_, i) => (
+                            <div key={i} className="flex gap-16 uppercase text-[9px] font-technical text-neon-magenta tracking-[0.2em] font-bold">
+                                <span>LATENCY: 12ms // SERVER: OMEGA_SOUTH // STATUS: DEEP_FETCH_ACTIVE</span>
+                                <span>OPERATORS_ACTIVE: 1,402 // DRILLS_SYNCED: 100% // NOCOMING_SAVE_YOU</span>
+                                <span>SIGNAL_LOCK: SECURE // VOID_PROTOCOL: INITIALIZED // GRIT_ORACLE_LIVE</span>
+                                <span>LATENCY: 12ms // SERVER: OMEGA_SOUTH // STATUS: DEEP_FETCH_ACTIVE</span>
+                            </div>
+                        ))}
+                    </motion.div>
+                </div>
+                <div className="hidden md:flex bg-zinc-900 px-6 h-full items-center gap-4 text-[9px] font-technical text-zinc-500 tracking-[0.2em]">
+                    <p>FREQ: 44.9KHZ</p>
+                    <p className="text-neon-magenta">STATUS: CLEAR</p>
+                </div>
+            </div>
+
+            {/* Spacer for ticker */}
+            <div className="h-10"></div>
         </div>
     )
 }
