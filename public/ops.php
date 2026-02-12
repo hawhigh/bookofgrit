@@ -52,6 +52,36 @@ if ($action === 'delete') {
     } else {
         echo json_encode(["status" => "success", "message" => "ASSET_ALREADY_GONE"]);
     }
+} elseif ($action === 'upload' || (empty($action) && isset($_FILES["file"]))) {
+    if (!file_exists($target_dir)) {
+        mkdir($target_dir, 0777, true);
+    }
+
+    if (isset($_FILES["file"])) {
+        $file = $_FILES["file"];
+        $file_extension = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
+
+        $allowed_exts = ["pdf", "jpg", "jpeg", "png", "webp"];
+        if (!in_array($file_extension, $allowed_exts)) {
+            echo json_encode(["status" => "error", "message" => "File type not allowed."]);
+            exit;
+        }
+
+        $file_name = "asset_" . time() . "_" . bin2hex(random_bytes(4)) . "." . $file_extension;
+        $target_file = $target_dir . $file_name;
+
+        if (move_uploaded_file($file["tmp_name"], $target_file)) {
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+            $host = $_SERVER['HTTP_HOST'];
+            $url = $protocol . "://" . $host . "/uploads/" . $file_name;
+
+            echo json_encode(["status" => "success", "url" => $url]);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Moving file failed."]);
+        }
+    } else {
+        echo json_encode(["status" => "error", "message" => "No file received."]);
+    }
 } else {
     echo json_encode(["status" => "error", "message" => "INVALID_ACTION: " . $action]);
 }

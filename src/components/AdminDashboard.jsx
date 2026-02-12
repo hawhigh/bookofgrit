@@ -172,7 +172,8 @@ export default function AdminDashboard(props) {
     const uploadFile = async (file) => {
         const formData = new FormData();
         formData.append('file', file);
-        const res = await fetch('/upload.php', {
+        formData.append('action', 'upload');
+        const res = await fetch(`/ops.php?t=${Date.now()}`, {
             method: 'POST',
             headers: {
                 'X-Operator-Key': import.meta.env.VITE_OPERATOR_KEY
@@ -184,21 +185,7 @@ export default function AdminDashboard(props) {
         throw new Error(data.message || "UPLOAD_FAILED");
     };
 
-    const deletePhysically = async (url) => {
-        if (!url) return;
-        try {
-            await fetch('/delete-asset.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Operator-Key': import.meta.env.VITE_OPERATOR_KEY
-                },
-                body: JSON.stringify({ url })
-            });
-        } catch (err) {
-            console.error("Purge Error", err);
-        }
-    };
+
 
     const [uploadStatus, setUploadStatus] = useState('');
 
