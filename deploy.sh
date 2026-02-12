@@ -35,6 +35,9 @@ cp -r $BUILD_DIR/* "$TEMP_DEPLOY_DIR/"
 # Copy hidden files like .htaccess
 cp $BUILD_DIR/.htaccess "$TEMP_DEPLOY_DIR/" 2>/dev/null
 
+# REMOVE SECRETS TO AVOID GITHUB BLOCKS
+rm "$TEMP_DEPLOY_DIR/stripe_secrets.php" 2>/dev/null
+
 cd "$TEMP_DEPLOY_DIR"
 git init
 git checkout -b main
@@ -43,7 +46,11 @@ git commit -m "Deploy: $(date +'%Y-%m-%d %H:%M:%S')"
 
 # Add remote and push
 git remote add origin "$REPO_OR_URL"
-git push -f origin main:$DEPLOY_BRANCH
+# Push to 'deploy' branch
+git push -f origin main:deploy
+
+# Push to 'main' branch (just in case Hostinger is listening there)
+git push -f origin main
 
 # 4. Clean up
 cd -

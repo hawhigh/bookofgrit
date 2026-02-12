@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore'
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, arrayUnion } from 'firebase/firestore'
 import { db, auth } from '../firebase'
 import AdminDashboard from '../components/AdminDashboard'
 
@@ -79,17 +79,18 @@ export default function AdminPage() {
 
     const fetchUsers = async () => {
         try {
-            const q = query(collection(db, "users"))
+            const q = query(collection(db, "users"), orderBy("createdAt", "desc"))
             const querySnapshot = await getDocs(q)
-            const data = querySnapshot.docs.map(doc => ({ ...doc.data(), firestoreId: doc.id }))
-            if (data.length === 0) {
-                setUsers([
-                    { id: 'USR_01', email: 'operator@bookofgrit.com', status: 'ACTIVE', role: 'COMMANDER', joined: '2023-10-15' },
-                    { id: 'USR_02', email: 'recruit@bookofgrit.com', status: 'PENDING', role: 'RECRUIT', joined: '2023-11-02' }
-                ])
-            } else {
-                setUsers(data)
-            }
+            const data = querySnapshot.docs.map(doc => {
+                const d = doc.data()
+                return {
+                    ...d,
+                    id: doc.id,
+                    firestoreId: doc.id,
+                    joined: d.createdAt?.toDate().toLocaleDateString() || 'N/A'
+                }
+            })
+            setUsers(data)
         } catch (err) { console.error("Fetch users failed:", err) }
     }
 
@@ -97,15 +98,16 @@ export default function AdminPage() {
         try {
             const q = query(collection(db, "subscriptions"))
             const querySnapshot = await getDocs(q)
-            const data = querySnapshot.docs.map(doc => ({ ...doc.data(), firestoreId: doc.id }))
-            if (data.length === 0) {
-                setSubs([
-                    { id: 'SUB_001', user: 'operator@bookofgrit.com', plan: 'THE MOVEMENT', status: 'ACTIVE', nextBilling: '2023-12-15' },
-                    { id: 'SUB_002', user: 'recruit@bookofgrit.com', plan: 'THE MOVEMENT', status: 'PAUSED', nextBilling: '2023-12-02' }
-                ])
-            } else {
-                setSubs(data)
-            }
+            const data = querySnapshot.docs.map(doc => {
+                const d = doc.data()
+                return {
+                    ...d,
+                    id: doc.id,
+                    firestoreId: doc.id,
+                    nextBilling: d.current_period_end ? new Date(d.current_period_end * 1000).toLocaleDateString() : 'N/A'
+                }
+            })
+            setSubs(data)
         } catch (err) { console.error("Fetch subs failed:", err) }
     }
 
@@ -125,12 +127,52 @@ export default function AdminPage() {
         } catch (err) { console.error("Add failed:", err) }
     }
 
+    const handleGrantAccess = async (uid) => {
+        try {
+            const itemId = prompt("ENTER_ASSET_ID_TO_GRANT (e.g. CH_01):")
+            if (!itemId) return
+            await updateDoc(doc(db, "users", uid), {
+                purchased: arrayUnion(itemId)
+            })
+            alert("ACCESS_GRANTED_SUCCESSFULLY")
+            fetchUsers()
+        } catch (err) { console.error("Grant failed:", err) }
+    }
+
+    const handleResetProtocols = async (uid) => {
+        try {
+            if (!confirm("WIPE_USER_CLEARANCE? THIS WILL REMOVE ALL PURCHASES AND SUBS STATUS.")) return
+            await updateDoc(doc(db, "users", uid), {
+                purchased: [],
+                isSubscriber: false
+            })
+            alert("PROTOCOL_RESET_COMPLETE")
+            fetchUsers()
+        } catch (err) { console.error("Reset failed:", err) }
+    }
+
+    const handleDeleteUser = async (uid) => {
+        try {
+            if (!confirm("DELETE_OPERATOR_PERMANENTLY?")) return
+            await deleteDoc(doc(db, "users", uid))
+            alert("OPERATOR_TERMINATED")
+            fetchUsers()
+        } catch (err) { console.error("Deletion failed:", err) }
+    }
+
     const handleDeleteChapter = async (firestoreId) => {
         try {
             if (!confirm("CONFIRM_PERMANENT_DELETION?")) return
             await deleteDoc(doc(db, "chapters", firestoreId))
             fetchChapters()
         } catch (err) { console.error("Delete failed:", err) }
+    }
+
+    const handleUpdateChapter = async (firestoreId, updatedData) => {
+        try {
+            await updateDoc(doc(db, "chapters", firestoreId), updatedData)
+            fetchChapters()
+        } catch (err) { console.error("Update failed:", err) }
     }
     const handleAddDrill = async (drill) => {
         try {
@@ -190,9 +232,13 @@ export default function AdminPage() {
                     subs={subs}
                     drills={drills}
                     onAdd={handleAddChapter}
+                    onUpdate={handleUpdateChapter}
                     onDelete={handleDeleteChapter}
+                    onGrantAccess={handleGrantAccess}
                     onAddDrill={handleAddDrill}
                     onDeleteDrill={handleDeleteDrill}
+                    onResetProtocols={handleResetProtocols}
+                    onDeleteUser={handleDeleteUser}
                     onSeed={handleSeedChapters}
                     onClose={() => navigate('/')}
                 />

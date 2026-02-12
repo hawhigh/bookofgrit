@@ -1,0 +1,9 @@
+# Deny direct access to all files
+# Only PHP scripts (like download.php) which reside on the server can read these.
+Order Deny,Allow
+Deny from all
+
+# Allow images to be viewed (for covers)
+<FilesMatch "\.(jpg|jpeg|png|webp|gif)$">
+    Allow from all
+</FilesMatch>

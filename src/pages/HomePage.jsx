@@ -109,12 +109,33 @@ export default function HomePage() {
   }
 
 
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [authMode, setAuthMode] = useState('google') // 'google', 'login', 'signup'
+  const [authError, setAuthError] = useState(null)
+
   const handleGoogleLogin = async () => {
     try {
+      setAuthError(null)
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
     } catch (err) {
       console.error("Google Auth Error:", err);
+      setAuthError(err.message);
+    }
+  }
+
+  const handleEmailAuth = async (isSignup) => {
+    try {
+      setAuthError(null)
+      if (isSignup) {
+        await createUserWithEmailAndPassword(auth, email, password)
+      } else {
+        await signInWithEmailAndPassword(auth, email, password)
+      }
+    } catch (err) {
+      console.error("Email Auth Error:", err);
+      setAuthError(err.message.replace('Firebase: ', ''))
     }
   }
 
@@ -175,41 +196,36 @@ export default function HomePage() {
   }
 
   const handleDownload = (item) => {
+    // If physical PDF exists, use the secure gatekeeper
+    if (item.pdfUrl) {
+      const filename = item.pdfUrl.split('/').pop();
+      const downloadUrl = `/download.php?file=${filename}&uid=${user?.uid || 'anonymous'}`;
+      window.open(downloadUrl, '_blank');
+      return;
+    }
+
+    // Fallback: Generate PDF from text content
     const doc = new jsPDF();
-
-    // Set background to black (simulated with dark grey rect as full black drains toner)
-    // Actually for a text document, white background with black text is better for printing,
-    // but we can add a cool cover page.
-
-    // COVER PAGE
     doc.setFillColor(0, 0, 0);
-    doc.rect(0, 0, 210, 297, 'F'); // Full page black
-
-    doc.setTextColor(255, 77, 0); // Fire orange
+    doc.rect(0, 0, 210, 297, 'F');
+    doc.setTextColor(255, 77, 0);
     doc.setFont("courier", "bold");
     doc.setFontSize(22);
     doc.text("CLASSIFIED ASSET", 105, 40, null, null, "center");
-
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(30);
     doc.text(item.name.toUpperCase(), 105, 120, null, null, "center");
-
     doc.setFontSize(10);
     doc.setTextColor(150, 150, 150);
     doc.text(`ID: ${item.id}`, 105, 135, null, null, "center");
     doc.text("AUTHORIZATION: GRIT_MASTER", 105, 140, null, null, "center");
-
     doc.addPage();
-
-    // CONTENT PAGE
     doc.setTextColor(0, 0, 0);
     doc.setFont("times", "normal");
     doc.setFontSize(12);
-
     const content = item.content || "NO CONTENT FOUND.\n\nSTAY HARD.";
     const splitText = doc.splitTextToSize(content, 180);
     doc.text(splitText, 15, 20);
-
     doc.save(`${item.id}_${item.name.replace(/\s/g, '_')}_DECRYPTED.pdf`);
   }
 
@@ -306,17 +322,60 @@ export default function HomePage() {
           {!user ? (
             <div className="space-y-6">
               <h3 className="font-technical text-[10px] text-zinc-500 mb-4 uppercase tracking-widest text-center">INITIALIZE_OPERATOR_ENLISTMENT</h3>
-              <button
-                onClick={handleGoogleLogin}
-                className="w-full bg-white text-black font-stencil py-4 flex items-center justify-center gap-4 hover:bg-primary transition-all cursor-pointer"
-              >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" className="w-5 h-5" />
-                ENLIST WITH GOOGLE
-              </button>
-              <div className="text-center">
-                <span className="text-zinc-700 font-technical text-[8px] uppercase tracking-widest">--- OR_USE_SECURE_CHANNEL ---</span>
+              <div className="w-full space-y-4">
+                {authMode === 'google' && (
+                  <>
+                    <button
+                      onClick={() => setAuthMode('signup')}
+                      className="w-full py-4 px-6 bg-primary text-black font-stencil hover:bg-white transition-colors flex items-center justify-center gap-3 shadow-[4px_4px_0px_#333] uppercase"
+                    >
+                      CREATE_NEW_IDENTITY
+                    </button>
+                    <div className="text-center mt-4">
+                      <button onClick={() => setAuthMode('login')} className="text-[10px] font-technical text-zinc-600 hover:text-white uppercase transition-colors">
+                        Authorized_Personnel_Login
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {(authMode === 'login' || authMode === 'signup') && (
+                  <div className="space-y-3 animate-fade-in">
+                    <input
+                      type="email"
+                      placeholder="OPERATOR_EMAIL"
+                      className="w-full bg-black border border-zinc-700 p-3 font-technical text-white text-xs placeholder-zinc-600 focus:border-primary outline-none uppercase"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <input
+                      type="password"
+                      placeholder="ACCESS_CODE"
+                      className="w-full bg-black border border-zinc-700 p-3 font-technical text-white text-xs placeholder-zinc-600 focus:border-primary outline-none uppercase"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    {authError && <p className="text-fire text-[10px] font-technical">{authError}</p>}
+
+                    <button
+                      onClick={() => handleEmailAuth(authMode === 'signup')}
+                      className="w-full py-3 bg-primary text-black font-stencil hover:bg-white transition-colors uppercase"
+                    >
+                      {authMode === 'signup' ? 'ESTABLISH_IDENTITY' : 'AUTHENTICATE'}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setAuthMode('google');
+                        setAuthError(null);
+                      }}
+                      className="w-full text-[10px] font-technical text-zinc-500 hover:text-white uppercase"
+                    >
+                      ABORT_MANUAL_OVERRIDE
+                    </button>
+                  </div>
+                )}
               </div>
-              <p className="text-zinc-600 font-technical text-[8px] text-center uppercase">Email Authentication available in Phase 02</p>
             </div>
           ) : !callsign ? (
             <div className="space-y-6">
@@ -384,14 +443,14 @@ export default function HomePage() {
                   onClick={() => handleArchiveClick(item)}
                   className={`relative group cursor-pointer ${idx % 2 !== 0 ? 'md:translate-y-6' : ''}`}
                 >
-                  <div className={`aspect-[3/4] bg-zinc-900 border-2 relative overflow-hidden transition-transform duration-300 group-hover:scale-[1.02] ${purchased.includes(item.id) ? 'border-neon-yellow shadow-[0_0_15px_rgba(204,255,0,0.3)]' : `${item.borderClass} ${item.glow}`}`}>
+                  <div className={`aspect-[3/4] bg-zinc-900 border-2 relative overflow-hidden transition-transform duration-300 group-hover:scale-[1.02] animate-scan ${purchased.includes(item.id) ? 'border-neon-yellow shadow-[0_0_15px_rgba(204,255,0,0.3)]' : `${item.borderClass} ${item.glow}`}`}>
                     <img
                       alt={item.name}
                       className={`w-full h-full object-cover transition-all duration-500 ${purchased.includes(item.id) ? 'grayscale-0' : 'grayscale group-hover:grayscale-0'}`}
                       src={item.img}
                     />
-                    <div className="absolute top-2 right-2 sticker-peel px-2 py-1.5 text-[10px] font-bold z-20 leading-none">
-                      {purchased.includes(item.id) ? 'OWNED' : item.price}
+                    <div className={`absolute top-2 right-2 sticker-peel px-2 py-1.5 text-[10px] font-bold z-20 leading-none ${purchased.includes(item.id) ? 'bg-neon-yellow text-black' : 'bg-white text-black'}`}>
+                      {purchased.includes(item.id) ? 'ACCESS_DATA' : 'ACQUIRE_TARGET'}
                     </div>
                   </div>
                   <div className="mt-2 text-center">
@@ -411,8 +470,8 @@ export default function HomePage() {
           viewport={{ once: true }}
           className="p-6 mb-12"
         >
-          <div className="border-4 border-neon-magenta p-10 relative bg-black shadow-[0_0_40px_rgba(255,0,255,0.1)]">
-            <div className="absolute -top-4 left-6 bg-neon-magenta text-black px-4 py-1 text-xs font-bold font-technical tracking-widest uppercase">ENLIST_NOW</div>
+          <div className="border-4 border-neon-magenta p-10 relative bg-black shadow-[0_0_40px_rgba(255,0,255,0.1)] animate-scan magenta-scan">
+            <div className="absolute -top-4 left-6 bg-neon-magenta text-black px-4 py-1 text-xs font-bold font-technical tracking-widest uppercase z-20">ENLIST_NOW</div>
 
             <div className="mb-10 text-center">
               <h2 className="text-4xl md:text-5xl font-bombed mb-4 leading-none text-white italic drop-shadow-[0_0_10px_rgba(255,0,255,0.3)]">REWRITE YOUR REALITY</h2>
@@ -476,7 +535,7 @@ export default function HomePage() {
                 <div className="text-[10px] font-technical text-zinc-600">AUTH: CLASSIFIED_04</div>
                 <button
                   onClick={handleAdminAuth}
-                  className="text-[10px] font-technical text-zinc-800 text-left hover:text-fire transition-colors"
+                  className="text-[10px] font-technical text-zinc-600 text-left hover:text-fire transition-colors"
                 >
                   SYS_ADMIN_LOGIN
                 </button>
@@ -487,8 +546,8 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 text-[10px] font-technical text-zinc-400">
-              <a className="hover:text-primary underline" href="#">TERMS_OF_GRIT</a>
-              <a className="hover:text-primary underline" href="#">SECURE_DECRYPT</a>
+              <Link className="hover:text-primary underline" to="/terms">TERMS_OF_GRIT</Link>
+              <Link className="hover:text-primary underline" to="/privacy">SECURE_DECRYPT</Link>
             </div>
 
             <div className="pt-6 flex justify-center opacity-20">

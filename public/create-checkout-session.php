@@ -13,8 +13,8 @@ if (empty($stripe_secret_key)) {
     exit;
 }
 
-$success_url_base = 'https://thebookofgrit.com/success';
-$cancel_url = 'https://thebookofgrit.com/cancel';
+$success_url_base = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]/success";
+$cancel_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]/cancel";
 // ---------------------
 
 $input = json_decode(file_get_contents('php://input'), true);
@@ -24,7 +24,7 @@ $name = $input['name'] ?? 'Book of Grit Asset';
 $priceStr = $input['price'] ?? '$3';
 $img = $input['img'] ?? 'https://thebookofgrit.com/bookofgrit_logo_v3.png';
 
-$amountInCents = intval(preg_replace('/[^0-9]/', '', $priceStr)) * 100;
+$amountInCents = round(floatval(preg_replace('/[^0-9.]/', '', $priceStr)) * 100);
 $mode = (strpos($itemId, 'SUB_') !== false) ? 'subscription' : 'payment';
 
 $ch = curl_init();

@@ -38,7 +38,7 @@ if (isset($session['payment_status']) && $session['payment_status'] === 'paid') 
     echo json_encode([
         'status' => 'paid',
         'itemId' => $session['metadata']['itemId'] ?? '',
-        'uid' => $session['metadata']['uid'] ?? ''
+        'uid' => $session['metadata']['uid'] ?? 'anonymous'
     ]);
 } else {
     echo json_encode(['status' => 'unpaid', 'error' => 'SESSION_NOT_VALID_OR_UNPAID']);

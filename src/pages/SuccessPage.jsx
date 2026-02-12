@@ -92,7 +92,9 @@ export default function SuccessPage() {
         // If the item has a real PDF URL, we should redirect or open that
         // Otherwise, fallback to the text manifest.
         if (item.pdfUrl) {
-            window.open(item.pdfUrl, '_blank');
+            const filename = item.pdfUrl.split('/').pop();
+            const downloadUrl = `/download.php?file=${filename}&uid=${auth.currentUser?.uid || 'anonymous'}`;
+            window.open(downloadUrl, '_blank');
             return;
         }
 
