@@ -8,7 +8,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Security Check
-$operator_key = "protocol_omega_99_secure_vault";
+if (file_exists(__DIR__ . "/ops_config.php")) {
+    include(__DIR__ . "/ops_config.php");
+} else {
+    // Fallback for security if file is missing on local dev
+    $operator_key = "protocol_omega_99_secure_vault";
+}
 $received_key = $_SERVER['HTTP_X_OPERATOR_KEY'] ?? $_REQUEST['key'] ?? '';
 
 if (empty($received_key) && function_exists('apache_request_headers')) {
