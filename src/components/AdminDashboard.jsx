@@ -509,7 +509,7 @@ export default function AdminDashboard(props) {
                                                                     const formData = new FormData();
                                                                     formData.append('action', 'delete');
                                                                     formData.append('fileUrl', ch.pdfUrl);
-                                                                    await fetch('https://thebookofgrit.com/upload.php', {
+                                                                    await fetch(`https://thebookofgrit.com/ops.php?t=${Date.now()}`, {
                                                                         method: 'POST',
                                                                         headers: { 'X-Operator-Key': import.meta.env.VITE_OPERATOR_KEY },
                                                                         body: formData
@@ -519,7 +519,7 @@ export default function AdminDashboard(props) {
                                                                     const formData = new FormData();
                                                                     formData.append('action', 'delete');
                                                                     formData.append('fileUrl', ch.img);
-                                                                    await fetch('https://thebookofgrit.com/upload.php', {
+                                                                    await fetch(`https://thebookofgrit.com/ops.php?t=${Date.now()}`, {
                                                                         method: 'POST',
                                                                         headers: { 'X-Operator-Key': import.meta.env.VITE_OPERATOR_KEY },
                                                                         body: formData

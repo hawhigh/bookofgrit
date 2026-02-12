@@ -101,3 +101,4 @@ build/
 *.zip
 *.exp
 *.sqlite
+dist_ready/
