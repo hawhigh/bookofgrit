@@ -156,7 +156,7 @@ export default function AdminDashboard(props) {
 
     const fetchLogs = async () => {
         try {
-            const res = await fetch('/read-logs.php', {
+            const res = await fetch(`/ops.php?action=read_logs&t=${Date.now()}`, {
                 headers: { 'X-Operator-Key': import.meta.env.VITE_OPERATOR_KEY }
             });
             const data = await res.json();

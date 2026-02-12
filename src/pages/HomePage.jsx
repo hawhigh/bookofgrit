@@ -23,6 +23,7 @@ export default function HomePage() {
   const [user, setUser] = useState(null)
   const [isSubscriber, setIsSubscriber] = useState(false)
   const [callsign, setCallsign] = useState('')
+  const [drills, setDrills] = useState([])
   const navigate = useNavigate()
 
 
@@ -51,8 +52,18 @@ export default function HomePage() {
     });
 
     fetchChapters();
+    fetchDrills();
     return () => unsubscribe();
   }, [])
+
+  const fetchDrills = async () => {
+    try {
+      const q = query(collection(db, "drills"), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setDrills(data);
+    } catch (err) { console.error("Failed to fetch drills:", err); }
+  }
 
   const fetchChapters = async () => {
     try {
@@ -280,15 +291,35 @@ export default function HomePage() {
         </motion.section>
 
         {/* Ticker Section */}
-        <div className="bg-neon-yellow py-2 ticker-wrap border-y-2 border-black">
-          <div className="ticker-content flex gap-8 items-center">
-            <span className="text-black font-technical font-bold text-xs uppercase tracking-tighter">
-              8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO // 8,400+ OPERATORS ACTIVE
-            </span>
-            <span className="text-black font-technical font-bold text-xs uppercase tracking-tighter">
-              8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO // 8,400+ OPERATORS ACTIVE
-            </span>
-          </div>
+        <div className="bg-neon-yellow py-2 ticker-wrap border-y-2 border-black overflow-hidden">
+          <motion.div
+            animate={{ x: [0, -1000] }}
+            transition={{ repeat: Infinity, duration: 30, ease: "linear" }}
+            className="ticker-content flex gap-8 items-center whitespace-nowrap"
+          >
+            {drills.length > 0 ? (
+              drills.map((d, i) => (
+                <span key={i} className="text-black font-technical font-bold text-xs uppercase tracking-tighter">
+                  SIGNAL_REVEALED: {d.title} // TYPE: {d.type} // MISSION_START: {d.timestamp?.toDate().toLocaleTimeString()} //
+                </span>
+              ))
+            ) : (
+              <>
+                <span className="text-black font-technical font-bold text-xs uppercase tracking-tighter">
+                  8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO // SECURE_LINE_ACTIVE //
+                </span>
+                <span className="text-black font-technical font-bold text-xs uppercase tracking-tighter">
+                  8,400+ OPERATORS ACTIVE // MISSION LOGGED 2m AGO // SECURE_LINE_ACTIVE //
+                </span>
+              </>
+            )}
+            {/* DUPLICATE FOR SEAMLESS LOOP */}
+            {drills.length > 0 && drills.map((d, i) => (
+              <span key={`dup-${i}`} className="text-black font-technical font-bold text-xs uppercase tracking-tighter">
+                SIGNAL_REVEALED: {d.title} // TYPE: {d.type} // MISSION_START: {d.timestamp?.toDate().toLocaleTimeString()} //
+              </span>
+            ))}
+          </motion.div>
         </div>
 
         {/* Phase 01 Section */}

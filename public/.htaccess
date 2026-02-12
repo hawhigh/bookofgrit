@@ -2,9 +2,8 @@
   RewriteEngine On
   RewriteBase /
   
-  # Explicitly allow destroy-asset.php
+  # Explicitly allow ops.php
   RewriteRule ^ops\.php$ - [L]
-  RewriteRule ^upload\.php$ - [L]
 
   # Allow access to PHP files directly
   RewriteCond %{REQUEST_FILENAME} -f

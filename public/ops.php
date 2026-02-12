@@ -82,6 +82,14 @@ if ($action === 'delete') {
     } else {
         echo json_encode(["status" => "error", "message" => "No file received."]);
     }
+} elseif ($action === 'read_logs') {
+    $log_file = 'fulfillment_audit.log';
+    if (file_exists($log_file)) {
+        $logs = file_get_contents($log_file);
+        echo json_encode(["status" => "success", "logs" => $logs]);
+    } else {
+        echo json_encode(["status" => "success", "logs" => "NO_LOGS_ON_DISK_CURRENTLY"]);
+    }
 } else {
     echo json_encode(["status" => "error", "message" => "INVALID_ACTION: " . $action]);
 }
