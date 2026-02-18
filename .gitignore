@@ -102,3 +102,7 @@ build/
 *.exp
 *.sqlite
 dist_ready/
+
+# User Content
+public/uploads/
+test_file.pdf

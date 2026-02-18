@@ -1,0 +1,65 @@
+@keyframes scan-vertical {
+    0% {
+        transform: translateY(-100%);
+    }
+
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+.animate-scan {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 20%;
+    /* A scanning bar, not full height */
+    background: linear-gradient(to bottom, transparent, rgba(0, 240, 255, 0.5), transparent);
+    opacity: 0.2;
+    pointer-events: none;
+    animation: scan-vertical 3s linear infinite;
+    z-index: 10;
+}
+
+.magenta-scan .animate-scan {
+    background: linear-gradient(to bottom, transparent, rgba(255, 0, 255, 0.5), transparent);
+}
+
+/* Glitch Border Effect - Subtle shift */
+@keyframes glitch-border-anim {
+    0% {
+        transform: translate(0);
+        box-shadow: -2px 2px 0px rgba(0, 240, 255, 0.5);
+    }
+
+    20% {
+        transform: translate(-1px, 1px);
+        box-shadow: 2px -2px 0px rgba(0, 240, 255, 0.5);
+    }
+
+    40% {
+        transform: translate(-1px, -1px);
+        box-shadow: 2px 2px 0px rgba(0, 240, 255, 0.5);
+    }
+
+    60% {
+        transform: translate(1px, 1px);
+        box-shadow: -2px -2px 0px rgba(0, 240, 255, 0.5);
+    }
+
+    80% {
+        transform: translate(1px, -1px);
+        box-shadow: -2px 2px 0px rgba(0, 240, 255, 0.5);
+    }
+
+    100% {
+        transform: translate(0);
+        box-shadow: 0 0 0 transparent;
+    }
+}
+
+.hover-glitch:hover {
+    animation: glitch-border-anim 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+    border-color: rgba(255, 255, 255, 0.8) !important;
+}

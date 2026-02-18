@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, arrayUnion } from 'firebase/firestore'
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore'
 import { db, auth } from '../firebase'
 import AdminDashboard from '../components/AdminDashboard'
 

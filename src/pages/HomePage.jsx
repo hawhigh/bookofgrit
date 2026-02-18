@@ -12,6 +12,7 @@ import {
   signInWithEmailAndPassword
 } from 'firebase/auth'
 import '../index.css'
+import '../animations.css'
 import PaymentModal from '../components/PaymentModal'
 
 export default function HomePage() {
@@ -312,52 +313,62 @@ export default function HomePage() {
   };
 
   return (
-    <div className="concrete-texture font-display text-white selection:bg-primary selection:text-black min-h-screen">
+    <div className="concrete-texture font-technical text-white selection:bg-primary selection:text-black min-h-screen">
+      <div className="noise-overlay"></div>
+      <div className="relative flex min-h-screen w-full flex-col bg-black">
 
-      <div className="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-black">
-        {/* Header Section */}
+        {/* Hero Section */}
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative pt-6 pb-12 px-6 border-b-4 border-black"
+          id="home"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="min-h-screen flex flex-col justify-center items-center p-6 md:p-12 relative overflow-hidden"
         >
-          {/* Removed Status/ID text as requested */}
+          {/* Animated Mesh Background */}
+          <div className="absolute inset-0 z-0 bg-black">
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-screen filter blur-[128px] animate-pulse-slow"></div>
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-fire/10 rounded-full mix-blend-screen filter blur-[128px] animate-pulse-slow font-technical"></div>
+          </div>
 
-          <div className="relative z-10 text-center">
-            <div className="mb-2 flex justify-center">
-              <img src="/bookofgrit_logo_v3.png" alt="BOOK OF GRIT LOGO" className="w-64 md:w-80 h-auto drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
-            </div>
-
-            <div className="relative inline-block mb-8">
-              <h2 className="text-4xl font-bombed text-white tracking-tighter leading-none drip bg-white bg-clip-text text-transparent uppercase">
-                No comfort.<br />Just grit.
-              </h2>
-              <div className="absolute -bottom-4 left-0 w-full h-1 bg-fire"></div>
-            </div>
-
-            <button
-              onClick={handleStartReading}
-              className="w-full bg-primary text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:scale-[0.98] transition-all duration-100 cursor-pointer"
-            >
-              ACQUIRE MANUALS
-            </button>
-
-            {isSubscriber ? (
-              <Link to="/dashboard" className="block w-full mt-4">
+          <div className="relative z-10 max-w-4xl text-center">
+            <div className="flex justify-center mb-10">
+              <div className="relative inline-block border-tactical border-tactical-tl border-tactical-br p-2 md:p-4 bg-black/40 backdrop-blur-sm">
                 <button
-                  className="w-full bg-neon-magenta text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:scale-[0.98] transition-all duration-100 cursor-pointer"
+                  onClick={handleAdminAuth}
+                  className="graffiti-logo text-6xl md:text-8xl tracking-tighter leading-none hover:translate-y-[-2px] transition-transform"
                 >
-                  ENTER THE DEEP WEB
+                  GRIT
                 </button>
-              </Link>
-            ) : (
+              </div>
+            </div>
+
+            <h1 className="text-xl md:text-3xl font-technical mb-10 text-zinc-300 uppercase tracking-[0.3em] font-light leading-relaxed">
+              The Ultimate Mental <span className="text-white font-bold border-b border-primary/50">Architecture</span> Protocol
+            </h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
               <button
-                onClick={() => document.getElementById('subs-section')?.scrollIntoView({ behavior: 'smooth' })}
-                className="w-full mt-4 bg-neon-magenta text-black font-stencil text-xl py-5 stencil-cutout shadow-[8px_8px_0px_#000] hover:translate-x-1 hover:translate-y-1 hover:shadow-none active:scale-[0.98] transition-all duration-100 cursor-pointer"
+                onClick={() => document.getElementById('manuals-section')?.scrollIntoView({ behavior: 'smooth' })}
+                className="btn-tactical py-5 px-8 bg-black text-white hover:text-black font-technical font-bold uppercase tracking-widest text-sm"
               >
-                ENTER TO GRIT
+                START_DECRYPTION
               </button>
-            )}
+
+              {isSubscriber ? (
+                <Link to="/manuals" className="block">
+                  <button className="btn-tactical py-5 px-8 bg-primary text-black font-technical font-bold uppercase tracking-widest text-sm w-full">
+                    ENTER_DEEP_LEVELS
+                  </button>
+                </Link>
+              ) : (
+                <button
+                  onClick={() => document.getElementById('subs-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="btn-tactical py-5 px-8 bg-primary text-black font-technical font-bold uppercase tracking-widest text-sm"
+                >
+                  BECOME_OPERATIVE
+                </button>
+              )}
+            </div>
           </div>
         </motion.section>
 
@@ -653,45 +664,70 @@ export default function HomePage() {
               )}
             </div>
           </div>
+        </section>
 
-          <div className="flex justify-between items-end mb-8">
-            <h2 className="text-3xl font-graffiti text-white uppercase tracking-tighter">FIELD MANUALS</h2>
-            <span className="text-[10px] font-technical text-zinc-500 uppercase">
-              {purchased.length} / {chapters.length} UNLOCKED
-            </span>
+        <section id="manuals-section" className="px-6 md:px-12 py-20 bg-black/50 border-y border-zinc-900 relative">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-technical text-white uppercase tracking-tighter font-bold">TACTICAL_ARCHIVES</h2>
+              <div className="h-1 w-20 bg-primary mt-2"></div>
+            </div>
+            <div className="bg-zinc-900/50 px-4 py-2 border border-zinc-800 backdrop-blur-sm">
+              <span className="text-[10px] font-technical text-primary uppercase font-bold tracking-widest leading-none">
+                {purchased.length} / {chapters.length} UNLOCKED_PROTOCOLS
+              </span>
+            </div>
           </div>
 
           {loading ? (
-            <div className="py-20 text-center font-technical text-primary animate-pulse uppercase">decrypting_archive...</div>
+            <div className="py-20 flex flex-col items-center justify-center gap-4">
+              <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <div className="font-technical text-primary animate-pulse text-xs uppercase tracking-[0.4em]">DECRYPTING_ASSETS...</div>
+            </div>
           ) : chapters.length === 0 ? (
-            <div className="py-20 text-center font-technical text-zinc-700 uppercase">archive_empty // connection_lost</div>
+            <div className="py-20 text-center border border-dashed border-zinc-800 rounded-lg">
+              <span className="material-symbols-outlined text-4xl text-zinc-800 mb-4 font-technical">database_off</span>
+              <p className="font-technical text-zinc-700 uppercase text-xs tracking-widest">ARCHIVE_TEMPORARILY_OFFLINE</p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {chapters.map((item, idx) => (
                 <div
                   key={item.firestoreId || item.id}
                   onClick={() => handleArchiveClick(item)}
-                  className={`relative group cursor-pointer ${idx % 2 !== 0 ? 'md:translate-y-6' : ''}`}
+                  className="group relative"
                 >
-                  <div className={`aspect-[3/4] bg-zinc-900 border-2 relative overflow-hidden transition-transform duration-300 group-hover:scale-[1.02] animate-scan ${purchased.includes(item.id) ? 'border-neon-yellow shadow-[0_0_15px_rgba(204,255,0,0.3)]' : `${item.borderClass} ${item.glow}`}`}>
+                  <div className="relative aspect-[3/4] overflow-hidden border-2 border-zinc-900 transition-all duration-500 hover-glitch group-hover:border-primary/50 group-hover:shadow-[0_0_30px_rgba(255,77,0,0.1)]">
                     <img
                       alt={item.name}
-                      className={`w-full h-full object-cover transition-all duration-500 ${purchased.includes(item.id) ? 'grayscale-0' : 'grayscale group-hover:grayscale-0'}`}
+                      className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${purchased.includes(item.id) ? 'grayscale-0' : 'grayscale group-hover:grayscale-0'}`}
                       src={item.img}
                     />
-                    <div className={`absolute top-2 right-2 sticker-peel px-2 py-1.5 text-[10px] font-bold z-20 leading-none ${purchased.includes(item.id) ? 'bg-neon-yellow text-black' : 'bg-white text-black'}`}>
-                      {purchased.includes(item.id) ? 'ACCESS_DATA' : 'ACQUIRE_TARGET'}
+
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+
+                    {/* Badge */}
+                    <div className={`absolute top-4 right-4 px-3 py-1 text-[8px] font-bold font-technical tracking-widest uppercase backdrop-blur-md border ${purchased.includes(item.id) ? 'bg-green-500/20 text-green-500 border-green-500/40' : 'bg-black/60 text-white border-white/20'}`}>
+                      {purchased.includes(item.id) ? 'ACCESS_GRANTED' : 'RESTRICTED_ACCESS'}
                     </div>
-                  </div>
-                  <div className="mt-2 text-center">
-                    <p className={`text-[10px] font-technical ${purchased.includes(item.id) ? 'text-neon-yellow' : item.colorClass}`}>{item.id}</p>
-                    <p className="text-xs font-graffiti uppercase">{item.name}</p>
+
+                    {/* Bottom Metadata */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-2 group-hover:translate-y-0 transition-transform">
+                      <p className="text-[10px] font-technical text-primary mb-1">{item.id}</p>
+                      <p className="text-xl font-bold uppercase tracking-tight text-white mb-4">{item.name}</p>
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <span className="text-[10px] text-zinc-400 font-technical underline">
+                          {purchased.includes(item.id) ? 'ACCESS_DATA' : 'ACQUIRE_TARGET'}
+                        </span>
+                        <span className="material-symbols-outlined text-sm text-primary">arrow_forward</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
-          <div className="h-12"></div>
         </section>
 
         <motion.section
@@ -700,48 +736,55 @@ export default function HomePage() {
           viewport={{ once: true }}
           className="p-6 mb-12"
         >
-          <div className="border-4 border-neon-magenta p-10 relative bg-black shadow-[0_0_40px_rgba(255,0,255,0.1)] animate-scan magenta-scan">
+          <div className="border-4 border-neon-magenta p-8 md:p-12 relative bg-black shadow-[0_0_40px_rgba(255,0,255,0.1)] magenta-scan overflow-hidden">
+            <div className="animate-scan"></div>
             <div className="absolute -top-4 left-6 bg-neon-magenta text-black px-4 py-1 text-xs font-bold font-technical tracking-widest uppercase z-20">ENLIST_NOW</div>
 
-            <div className="mb-10 text-center">
-              <h2 className="text-4xl md:text-5xl font-bombed mb-4 leading-none text-white italic drop-shadow-[0_0_10px_rgba(255,0,255,0.3)]">REWRITE YOUR REALITY</h2>
-              <div className="h-0.5 w-16 bg-neon-magenta mx-auto mb-6"></div>
-              <p className="font-technical text-zinc-400 text-xs leading-relaxed max-w-sm mx-auto uppercase tracking-tighter">
-                Individuality is a weakness. The collective is an accelerator. Most people fail because they lack the network to hold them accountable.
-              </p>
-            </div>
+            <div className="flex flex-col md:flex-row gap-8 md:gap-16 relative z-10">
+              {/* Left Column: Pitch */}
+              <div className="flex-1 flex flex-col justify-center text-left">
+                <h2 className="text-4xl md:text-5xl font-bombed mb-6 leading-none text-white italic drop-shadow-[0_0_10px_rgba(255,0,255,0.3)]">
+                  REWRITE YOUR <span className="text-neon-magenta">REALITY</span>
+                </h2>
+                <div className="h-0.5 w-24 bg-neon-magenta mb-8"></div>
+                <p className="font-technical text-zinc-400 text-xs leading-relaxed uppercase tracking-widest mb-10">
+                  Individuality is a weakness. The collective is an accelerator. Most people fail because they lack the network to hold them accountable.
+                </p>
 
-            <div className="grid grid-cols-1 gap-8 mb-12">
-              {[
-                { title: 'TACTICAL_DRILLS', color: 'primary', desc: 'Custom tailored physical and mental protocols delivered weekly to ensure exponential growth.' },
-                { title: 'DIRECT_SIGNAL', color: 'neon-magenta', desc: 'Bypass the noise of public socials. Direct access to the inner circle and decentralized discord backbone.' },
-                { title: 'RESOURCE_DUMP', color: 'fire', desc: 'Immediate unlocking of the full grit archive, including classified strategy decks and behavioral templates.' }
-              ].map((benefit, i) => (
-                <div key={i} className="flex gap-6 items-start border-l-2 border-zinc-900 pl-6 hover:border-neon-magenta transition-colors group">
-                  <div className="pt-1">
-                    <span className="material-symbols-outlined text-neon-magenta opacity-50 group-hover:opacity-100 transition-all font-bold">bolt</span>
+                {isSubscriber ? (
+                  <div className="w-full py-6 bg-green-500/20 border border-green-500/50 text-green-500 font-stencil text-xl text-center uppercase tracking-widest">
+                    OPERATIONAL_CLEARANCE_ACTIVE
                   </div>
-                  <div>
-                    <h4 className="text-white font-bombed text-[12px] mb-2 tracking-widest underline decoration-zinc-800">{benefit.title}</h4>
-                    <p className="text-zinc-500 font-technical text-[10px] leading-snug">{benefit.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {isSubscriber ? (
-              <div className="w-full py-6 bg-green-500/20 border border-green-500/50 text-green-500 font-stencil text-2xl text-center uppercase tracking-widest">
-                OPERATIONAL_CLEARANCE_ACTIVE
+                ) : (
+                  <button
+                    onClick={handleJoinMovement}
+                    className="w-full py-6 bg-neon-magenta text-black font-stencil text-xl hover:bg-white active:scale-[0.98] transition-all cursor-pointer shadow-[0_10px_30px_rgba(255,0,255,0.2)]"
+                  >
+                    $10/MONTH // JOIN THE 8,400+
+                  </button>
+                )}
+                <p className="mt-4 text-zinc-600 font-technical text-[8px] uppercase tracking-[0.2em] self-start md:self-center">NO_REFUNDS // NO_EXCUSES // NO_RETREAT</p>
               </div>
-            ) : (
-              <button
-                onClick={handleJoinMovement}
-                className="w-full py-6 bg-neon-magenta text-black font-stencil text-2xl hover:bg-white active:scale-[0.98] transition-all cursor-pointer shadow-[0_10px_30px_rgba(255,0,255,0.2)]"
-              >
-                $10/MONTH // JOIN THE 8,400+
-              </button>
-            )}
-            <p className="text-center mt-6 text-zinc-700 font-technical text-[8px] uppercase tracking-[0.4em]">NO_REFUNDS // NO_EXCUSES // NO_RETREAT</p>
+
+              {/* Right Column: Benefits Grid */}
+              <div className="flex-1 flex flex-col justify-center space-y-8 border-l border-zinc-900/50 pl-0 md:pl-8">
+                {[
+                  { title: 'TACTICAL_DRILLS', color: 'primary', desc: 'Custom tailored physical and mental protocols delivered weekly to ensure exponential growth.' },
+                  { title: 'DIRECT_SIGNAL', color: 'neon-magenta', desc: 'Bypass the noise of public socials. Direct access to the inner circle and decentralized discord backbone.' },
+                  { title: 'RESOURCE_DUMP', color: 'fire', desc: 'Immediate unlocking of the full grit archive, including classified strategy decks and behavioral templates.' }
+                ].map((benefit, i) => (
+                  <div key={i} className="flex gap-4 items-start hover:bg-white/5 p-4 rounded-sm transition-colors group border-l-2 border-transparent hover:border-neon-magenta">
+                    <div className="pt-1">
+                      <span className="material-symbols-outlined text-neon-magenta opacity-70 group-hover:opacity-100 transition-all font-bold group-hover:scale-110">bolt</span>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bombed text-sm mb-2 tracking-widest group-hover:text-neon-magenta transition-colors">{benefit.title}</h4>
+                      <p className="text-zinc-500 font-technical text-[10px] leading-relaxed tracking-wide group-hover:text-zinc-300">{benefit.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </motion.section>
 
